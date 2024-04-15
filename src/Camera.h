@@ -30,7 +30,6 @@ public:
 	void drawImGui();
 private:
 	void recalculateCameraVectors();
-	void rollAngle(float angleDt);
 
 	glm::vec3 position = glm::vec3(0.0f, 0.0f, 2.0f);    //z+ to do ty³u jest
 

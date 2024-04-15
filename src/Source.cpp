@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "Wall.h"
 #include "Objects/Primitives/Cube.h"
+#include "Utils/Random.h"
 
 glm::vec2 windowSize = glm::vec2(1024, 768);
 
@@ -94,6 +95,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 int main()
 {
+    srand(time(NULL));
     if (!glfwInit())
     {
         std::cout << "Failed to initialize glfwInit()" << std::endl;
@@ -148,24 +150,28 @@ int main()
     std::vector<Cube> cubes;
     cubes.reserve(100);
 
-    for (int x = 0; x < 10; x++)
+    for (int x = 0; x < 100; x++)
     {
-        for (int z = 0; z < 10; z++)
-        {
-            cubes.emplace_back(glm::vec3(x * 1.0f, 0.0f, z*1.0f), glm::vec3(2.0f, 0.0f, 0.0f),
-                glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f / (x + 1), 1.0f / (x + 1), 1.0f / (x + 1)));
-        }
+        float r = Utils::Random::generateRandomNumber(0.0, 1.0f);
+        float g = Utils::Random::generateRandomNumber(0.0, 1.0f);
+        float b = Utils::Random::generateRandomNumber(0.0, 1.0f);
+
+        float xPos = Utils::Random::generateRandomNumber(-20.0, 20.0f);
+        float yPos = Utils::Random::generateRandomNumber(-20.0, 20.0f);
+        float zPos = Utils::Random::generateRandomNumber(-20.0, 20.0f);
+
+        cubes.emplace_back(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(r, g, b));
     }
 
-    Wall w1(10, 0, 5, 10, 0, 10, 5, 1);
-    myShader.unbind();
+    glm::vec3 size = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
     while (!glfwWindowShouldClose(window))
     {
         float currFrame = static_cast<float>(glfwGetTime());
         deltaTime = currFrame - lastFrame;
         lastFrame = currFrame;
-
 
         renderer.clear();
 
@@ -178,6 +184,9 @@ int main()
             cam.drawImGui();
             //w1.drawImGui();
 
+            ImGui::DragFloat3("Size", &size[0]);
+            ImGui::DragFloat3("Rotation", &rotation[0]);
+
             //Update
             ImGui::ShowDemoWindow();
         }
@@ -187,25 +196,14 @@ int main()
 
         myShader.setUnfiformMat4f("projection", cam.getProjectionMatrix(windowSize));
         myShader.setUnfiformMat4f("view", cam.getViewMatrix());
-
-        glm::mat4 modelMat = glm::mat4(1.0f);
-
         for (Cube& cb : cubes)
         {
-            modelMat = glm::translate(glm::mat4(1.0f), cb.getPosition());
-            modelMat = glm::rotate(modelMat, 0.0f, cb.getRotation());
-            modelMat = glm::scale(modelMat, cb.getSize());
-            myShader.setUnfiformMat4f("model", modelMat);
+            cb.setSize(size);
+            cb.setRotation(rotation);
 
+            myShader.setUnfiformMat4f("model", cb.getModelMatrix());
             cb.draw(myShader, renderer);
         }
-        //myShader.unbind();
-        //myShader.bind();
-
-        modelMat = glm::mat4(1.0f);
-        //modelMat = glm::translate(modelMat, w1.getPosition());
-        myShader.setUnfiformMat4f("model", modelMat);
-        w1.draw(renderer, myShader);
 
         myShader.unbind();
 

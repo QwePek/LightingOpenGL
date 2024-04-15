@@ -50,12 +50,6 @@ void Camera::processInput(direction dir, double dt)
 
     if (dir == direction::LEFT)
         position -= right * camSpeed;
-
-    if (dir == direction::LEANLEFT)
-        rollAngle(-dt * 10);
-        
-    if (dir == direction::LEANRIGHT)
-        rollAngle(dt * 10);
 }
 
 void Camera::processMouse(double xOffs, double yOffs)
@@ -95,24 +89,6 @@ glm::mat4 Camera::getViewMatrix()
     return view;
 }
 
-void Camera::rollAngle(float rollDt)
-{
-    //roll += rollDt;
-
-    //if (roll < -180)
-    //{
-    //    roll = -180;
-    //    return;
-    //}
-    //else if (roll > 180)
-    //{
-    //    roll = 180;
-    //    return;
-    //}
-    //rollMat = glm::rotate(rollMat, glm::radians(rollDt), front);
-    //up = glm::mat3(rollMat) * up;
-}
-
 void Camera::recalculateCameraVectors()
 {
     //Constrains
@@ -149,38 +125,66 @@ void Camera::drawImGui()
         yawDelta -= yaw;
         rollDelta -= roll;
 
-        ImGui::DragFloat3("Tmp vec", &tmpVec[0], 0.1f, -1.0f, 1.0f);
-
-       /* if (pitchDelta != 0)
-        {
-            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(rollDelta), glm::vec3(1.0f,0.0f,0.0f));
-            front = glm::mat3(rollMat) * front;
-            right = glm::normalize(glm::cross(front, glm::vec3(0.0f,0.0f,1.0f)));
-            up = glm::normalize(glm::cross(right, front));
-        }
         if (yawDelta != 0)
         {
-            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(rollDelta), glm::vec3(0.0f, 1.0f, 0.0f));
-            right = glm::mat3(rollMat) * up;
-            front = -glm::normalize(glm::cross(right, worldUp));
-            up = glm::normalize(glm::cross(right, front));
+            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(yawDelta), glm::vec3(1.0f, 0.0f, 0.0f));
+            front = glm::mat3(rollMat) * front;
+            right = glm::mat3(rollMat) * right;
+            up = glm::mat3(rollMat) * up;
+        }
+        if (pitchDelta != 0)
+        {
+            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(pitchDelta), glm::vec3(0.0f,1.0f,0.0f));
+            front = glm::mat3(rollMat) * front;
+            right = glm::mat3(rollMat) * right;
+            up = glm::mat3(rollMat) * up;
         }
         if (rollDelta != 0)
         {
             rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(rollDelta), glm::vec3(0.0f, 0.0f, 1.0f));
+            front = glm::mat3(rollMat) * front;
+            right = glm::mat3(rollMat) * right;
             up = glm::mat3(rollMat) * up;
-            right = glm::normalize(glm::cross(up, glm::vec3(1.0f,0.0f,0.0f)));
-            front = -glm::normalize(glm::cross(right, up));
-        }*/
+        }
+        ImGui::PopID();
+        ImGui::PopID();
+
+        ImGui::PushID("LocalCam");
+        ImGui::SeparatorText("Local");
+        ImGui::PushID("Rotation");
+        ImGui::Text("Rotation:"); ImGui::SameLine();
+
+        static float localyawDelta = 0.f;
+        static float localpitchDelta = 0.f;
+        static float localrollDelta = 0.f;
+        ImGui::Drag_Float3("X", "Y", "Z", &localyawDelta, &localpitchDelta, &localrollDelta, -180, 180, -90, 90, -180, 180, 1);
+
+        if (localyawDelta != 0)
+        {
+            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localyawDelta), front);
+            front = glm::mat3(rollMat) * front;
+            right = glm::mat3(rollMat) * right;
+            up = glm::mat3(rollMat) * up;
+        }
+        if (localpitchDelta != 0)
+        {
+            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localpitchDelta), up);
+            front = glm::mat3(rollMat) * front;
+            right = glm::mat3(rollMat) * right;
+            up = glm::mat3(rollMat) * up;
+        }
+        if (localrollDelta != 0)
+        {
+            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localrollDelta), right);
+            front = glm::mat3(rollMat) * front;
+            right = glm::mat3(rollMat) * right;
+            up = glm::mat3(rollMat) * up;
+        }
+
+        ImGui::PopID();
+        ImGui::PopID();
 
         ImGui::Text(("Roll delta: " + std::to_string(rollDelta)).c_str());
-
-        ImGui::PopID();   
-        ImGui::PushID("Position");
-        ImGui::Text("Position:"); ImGui::SameLine();
-        ImGui::Drag_Float3("X", "Y", "Z", &position[0], &position[1], &position[2], -50, 50, -50, 50, -50, 50, 0.1);
-        ImGui::PopID();
-        ImGui::PopID();
 
         ImGui::SeparatorText("Matrixes");
         ImGui::Text(("Front (" + std::to_string(front.x) + ", " + std::to_string(front.y) + ", " + std::to_string(front.z) + ")").c_str());

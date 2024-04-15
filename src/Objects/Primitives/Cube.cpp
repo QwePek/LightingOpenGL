@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "Cube.h"
 #include "../../Rendering/VertexBufferLayout.h"
+#include "glm\glm.hpp"
+#include "glm\gtc\matrix_transform.hpp"
+#include "glm\gtc\type_ptr.hpp"
 
 Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr) : position(pos), rotation(rot), size(sz), color(clr)
 {
@@ -37,14 +40,14 @@ void Cube::init()
     };
     
     vertices = {
-        -1, -1,  1, color.r, color.g, color.b, //0
-         1, -1,  1, color.r, color.g, color.b, //1
-        -1,  1,  1, color.r, color.g, color.b, //2
-         1,  1,  1, color.r, color.g, color.b, //3
-        -1, -1, -1, color.r, color.g, color.b, //4
-         1, -1, -1, color.r, color.g, color.b, //5
-        -1,  1, -1, color.r, color.g, color.b, //6
-         1,  1, -1, color.r, color.g, color.b, //7
+        -size.x, -size.y,  size.z, color.r, color.g, color.b, //0
+         size.x, -size.y,  size.z, color.r, color.g, color.b, //1
+        -size.x,  size.y,  size.z, color.r, color.g, color.b, //2
+         size.x,  size.y,  size.z, color.r, color.g, color.b, //3
+        -size.x, -size.y, -size.z, color.r, color.g, color.b, //4
+         size.x, -size.y, -size.z, color.r, color.g, color.b, //5
+        -size.x,  size.y, -size.z, color.r, color.g, color.b, //6
+         size.x,  size.y, -size.z, color.r, color.g, color.b, //7
     };
     
     vb = new VertexBuffer(vertices.data(), vertices.size() * sizeof(float));
@@ -59,6 +62,17 @@ void Cube::init()
     va->unbind();
     ib->unbind();
     vb->unbind();
+}
+
+glm::mat4 Cube::getModelMatrix()
+{
+    glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), position);
+    modelMat = glm::rotate(modelMat, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    modelMat = glm::rotate(modelMat, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMat = glm::rotate(modelMat, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    modelMat = glm::scale(modelMat, size);
+
+    return modelMat;
 }
 
 void Cube::draw(const Shader& shader, const Renderer& renderer)

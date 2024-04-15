@@ -466,6 +466,7 @@
     <ClInclude Include="src\Rendering\VertexArray.h" />
     <ClInclude Include="src\Rendering\VertexBuffer.h" />
     <ClInclude Include="src\Utils\ImGuiExtension.h" />
+    <ClInclude Include="src\Utils\Random.h" />
     <ClInclude Include="src\Wall.h" />
   </ItemGroup>
   <ItemGroup>

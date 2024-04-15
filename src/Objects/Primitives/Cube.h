@@ -12,9 +12,14 @@ public:
 
 	void draw(const Shader& shader, const Renderer& renderer);
 
+	void setPosition(glm::vec3 pos) { position = pos; };
+	void setRotation(glm::vec3 rot) { rotation = rot; };
+	void setSize(glm::vec3 sz) { size = sz; };
 	inline glm::vec3 getPosition() { return position; };
 	inline glm::vec3 getRotation() { return rotation; };
 	inline glm::vec3 getSize() { return size; };
+
+	glm::mat4 getModelMatrix();
 
 private:
 	void init();

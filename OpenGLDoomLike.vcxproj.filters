@@ -986,6 +986,9 @@
     <ClInclude Include="src\Objects\Primitives\Cube.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Utils\Random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\libraries\glm\detail\func_common.inl">
