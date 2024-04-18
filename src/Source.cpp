@@ -16,7 +16,10 @@
 #include "Camera.h"
 #include "Wall.h"
 #include "Objects/Primitives/Cube.h"
+#include "Objects/Lights/PointLight.h"
 #include "Utils/Random.h"
+#include "Objects/Primitives/Sphere.h"
+#include "Objects/Primitives/Primitives.h"
 
 glm::vec2 windowSize = glm::vec2(1024, 768);
 
@@ -88,6 +91,11 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)
     cam.processMouse(xoffset, yoffset);
 }
 
+void scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
+{
+    cam.processZoom(xOffset, yOffset);
+}
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -104,7 +112,6 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
 
     GLFWwindow* window = glfwCreateWindow(windowSize.x, windowSize.y, "App", NULL, NULL);
     if (window == NULL)
@@ -127,6 +134,7 @@ int main()
     cam.turnOffMouseMovement();
 
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -144,28 +152,55 @@ int main()
 
     //------------------
     Renderer renderer;
+    Shader lightShader("src/Rendering/Shaders/lightShader.shader");
     Shader myShader("src/Rendering/Shaders/shader.shader");
     myShader.bind();
 
-    std::vector<Cube> cubes;
-    cubes.reserve(100);
+    std::unique_ptr<Object> light = std::make_unique<PointLight>();
+    std::vector<std::unique_ptr<Object>> worldObjects;
+    int cubeCount = 100;
+    int minX = 20;
+    int minY = 20;
+    int minZ = 20;
+    worldObjects.reserve(cubeCount);
 
-    for (int x = 0; x < 100; x++)
+    for (int x = 0; x < cubeCount; x++)
     {
         float r = Utils::Random::generateRandomNumber(0.0, 1.0f);
         float g = Utils::Random::generateRandomNumber(0.0, 1.0f);
         float b = Utils::Random::generateRandomNumber(0.0, 1.0f);
 
-        float xPos = Utils::Random::generateRandomNumber(-20.0, 20.0f);
-        float yPos = Utils::Random::generateRandomNumber(-20.0, 20.0f);
-        float zPos = Utils::Random::generateRandomNumber(-20.0, 20.0f);
+        float xPos = Utils::Random::generateRandomNumber(-minX, minX);
+        float yPos = Utils::Random::generateRandomNumber(-minY, minY);
+        float zPos = Utils::Random::generateRandomNumber(-minZ, minZ);
+        int mat = Utils::Random::generateRandomNumber(2, Material::MATERIAL_SIZE);
 
-        cubes.emplace_back(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(r, g, b));
+        int primitive = Utils::Random::generateRandomNumber(0, Primitives::Models::MODELS_COUNT);
+        std::unique_ptr<Object> obj;
+        switch (primitive)
+        {
+            case Primitives::Models::Cube: 
+                obj = std::make_unique<Cube>(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
+                    glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(r, g, b), static_cast<Material::Type>(mat)); 
+                break;
+            case Primitives::Models::Sphere: 
+                float radius = Utils::Random::generateRandomNumber(0.5f, 2.0f);
+                int size = Utils::Random::generateRandomNumber(6, 30);
+
+                obj = std::make_unique<Sphere>(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
+                    radius, glm::vec2(size, size), glm::vec3(r, g, b), static_cast<Material::Type>(mat));
+                break;
+        }
+
+        worldObjects.push_back(std::move(obj));
     }
 
     glm::vec3 size = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+
+    glm::vec3 lightPos = light->getPosition();
+    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+    float lightIntensity = 1.0f;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -182,30 +217,58 @@ int main()
 
         {
             cam.drawImGui();
-            //w1.drawImGui();
 
+            ImGui::Begin("Scene settings");
+            ImGui::DragFloat3("LightPosition", &lightPos[0], 0.05f);
+            ImGui::DragFloat3("LightColor", &lightColor[0], 0.05f, 0.0f, 1.0f);
+            ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 10.0f);
+            ImGui::Separator();
             ImGui::DragFloat3("Size", &size[0]);
             ImGui::DragFloat3("Rotation", &rotation[0]);
-
-            //Update
-            ImGui::ShowDemoWindow();
+            ImGui::End();
         }
         processInput(window);
 
+        //Light drawing
+        lightShader.bind();
+
+        lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+        lightShader.setUniformMat4f("view", cam.getViewMatrix());
+        lightShader.setUniformMat4f("model", light->getModelMatrix());
+        light->setPosition(lightPos);
+        light->setColor(lightIntensity * lightColor);
+        lightShader.setUniformVec3f("lightColor", light->getColor());
+        light->draw(lightShader, renderer);
+
+        lightShader.unbind();
+        //Light drawing */
+
+        //Objects drawing
         myShader.bind();
 
-        myShader.setUnfiformMat4f("projection", cam.getProjectionMatrix(windowSize));
-        myShader.setUnfiformMat4f("view", cam.getViewMatrix());
-        for (Cube& cb : cubes)
-        {
-            cb.setSize(size);
-            cb.setRotation(rotation);
+        myShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+        myShader.setUniformMat4f("view", cam.getViewMatrix());
+        myShader.setUniformVec3f("lightColor", light->getColor());
+        myShader.setUniformVec3f("lightPos", light->getPosition());
+        myShader.setUniformVec3f("viewPos", cam.getPosition());
 
-            myShader.setUnfiformMat4f("model", cb.getModelMatrix());
-            cb.draw(myShader, renderer);
+        for (auto& obj : worldObjects)
+        {
+
+            myShader.setUniformVec3f("material.ambient", obj->getAmbient());
+            myShader.setUniformVec3f("material.specular", obj->getSpecular());
+            myShader.setUniformVec3f("material.diffuse", obj->getDiffuse());
+            myShader.setUniform1f("material.shineness", obj->getShininess());
+
+            obj->setSize(size);
+            obj->setRotation(rotation);
+
+            myShader.setUniformMat4f("model", obj->getModelMatrix());
+            obj->draw(myShader, renderer);
         }
 
         myShader.unbind();
+        //Objects drawing */
 
         //End Draw
         ImGui::Render();

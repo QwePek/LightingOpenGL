@@ -20,8 +20,10 @@ public:
     void unbind() const;
 
     void setUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
+    void setUniform1f(const std::string& name, float f0);
     void setUniform1i(const std::string& name, int v0);
-    void setUnfiformMat4f(const std::string& name, const glm::mat4& matrix);
+    void setUniformMat4f(const std::string& name, const glm::mat4& matrix);
+    void setUniformVec3f(const std::string& name, const glm::vec3& vector);
 
     uint32_t getUniformLocation(const std::string& name);
 

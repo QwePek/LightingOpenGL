@@ -157,25 +157,25 @@ void Camera::drawImGui()
         static float localyawDelta = 0.f;
         static float localpitchDelta = 0.f;
         static float localrollDelta = 0.f;
-        ImGui::Drag_Float3("X", "Y", "Z", &localyawDelta, &localpitchDelta, &localrollDelta, -180, 180, -90, 90, -180, 180, 1);
+        ImGui::Drag_Float3("X", "Y", "Z", &localyawDelta, &localpitchDelta, &localrollDelta, -180, 180, -90, 90, -180, 180, 0.01);
 
         if (localyawDelta != 0)
         {
-            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localyawDelta), front);
+            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localyawDelta), up);
             front = glm::mat3(rollMat) * front;
             right = glm::mat3(rollMat) * right;
             up = glm::mat3(rollMat) * up;
         }
         if (localpitchDelta != 0)
         {
-            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localpitchDelta), up);
+            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localpitchDelta), right);
             front = glm::mat3(rollMat) * front;
             right = glm::mat3(rollMat) * right;
             up = glm::mat3(rollMat) * up;
         }
         if (localrollDelta != 0)
         {
-            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localrollDelta), right);
+            rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(localrollDelta), front);
             front = glm::mat3(rollMat) * front;
             right = glm::mat3(rollMat) * right;
             up = glm::mat3(rollMat) * up;
@@ -186,7 +186,7 @@ void Camera::drawImGui()
 
         ImGui::Text(("Roll delta: " + std::to_string(rollDelta)).c_str());
 
-        ImGui::SeparatorText("Matrixes");
+        ImGui::SeparatorText("Vectors");
         ImGui::Text(("Front (" + std::to_string(front.x) + ", " + std::to_string(front.y) + ", " + std::to_string(front.z) + ")").c_str());
         ImGui::Text(("Right (" + std::to_string(right.x) + ", " + std::to_string(right.y) + ", " + std::to_string(right.z) + ")").c_str());
         ImGui::Text(("Up (" + std::to_string(up.x) + ", " + std::to_string(up.y) + ", " + std::to_string(up.z) + ")").c_str());

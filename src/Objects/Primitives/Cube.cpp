@@ -5,49 +5,70 @@
 #include "glm\gtc\matrix_transform.hpp"
 #include "glm\gtc\type_ptr.hpp"
 
-Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr) : position(pos), rotation(rot), size(sz), color(clr)
+Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr) : Object(pos, rot, sz, clr)
 {
     init();
 }
 
-Cube::~Cube()
+Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Material::Type type) : Object(pos, rot, sz, clr, type)
 {
-    delete va;
-    delete ib;
+    init();
 }
 
 void Cube::init()
 {
     indices = {
         //Top
-        2, 6, 7,
-        2, 3, 7,
+        0,1,2,
+        0,2,3,
         //Bottom
-        0, 4, 5,
-        0, 1, 5,
+        4,5,6,
+        4,6,7,
         //Left
-        0, 2, 6,
-        0, 4, 6,
+        8,9,10,
+        8,10,11,
         //Right
-        1, 3, 7,
-        1, 5, 7,
+        12,13,14,
+        12,14,15,
         //Front
-        0, 2, 3,
-        0, 1, 3,
+        16,17,18,
+        16,18,19,
         //Back
-        4, 6, 7,
-        4, 5, 7
+        20,21,22,
+        20,22,23
     };
     
     vertices = {
-        -size.x, -size.y,  size.z, color.r, color.g, color.b, //0
-         size.x, -size.y,  size.z, color.r, color.g, color.b, //1
-        -size.x,  size.y,  size.z, color.r, color.g, color.b, //2
-         size.x,  size.y,  size.z, color.r, color.g, color.b, //3
-        -size.x, -size.y, -size.z, color.r, color.g, color.b, //4
-         size.x, -size.y, -size.z, color.r, color.g, color.b, //5
-        -size.x,  size.y, -size.z, color.r, color.g, color.b, //6
-         size.x,  size.y, -size.z, color.r, color.g, color.b, //7
+        //Position                //Normals
+        -size.x, -size.y, -size.z, 0.0f,  0.0f, -1.0f,
+        +size.x, -size.y, -size.z, 0.0f,  0.0f, -1.0f,
+        +size.x, +size.y, -size.z, 0.0f,  0.0f, -1.0f,
+        -size.x, +size.y, -size.z, 0.0f,  0.0f, -1.0f,
+
+        -size.x, -size.y, +size.z, 0.0f,  0.0f, 1.0f,
+        +size.x, -size.y, +size.z, 0.0f,  0.0f, 1.0f,
+        +size.x, +size.y, +size.z, 0.0f,  0.0f, 1.0f,
+        -size.x, +size.y, +size.z, 0.0f,  0.0f, 1.0f,
+        
+        -size.x, +size.y, +size.z, -1.0f,  0.0f, 0.0f,
+        -size.x, +size.y, -size.z, -1.0f,  0.0f, 0.0f,
+        -size.x, -size.y, -size.z, -1.0f,  0.0f, 0.0f,
+        -size.x, -size.y, +size.z, -1.0f,  0.0f, 0.0f,
+        
+        +size.x, +size.y, +size.z, 1.0f,  0.0f, 0.0f,
+        +size.x, +size.y, -size.z, 1.0f,  0.0f, 0.0f,
+        +size.x, -size.y, -size.z, 1.0f,  0.0f, 0.0f,
+        +size.x, -size.y, +size.z, 1.0f,  0.0f, 0.0f,
+        
+        -size.x, -size.y, -size.z, 0.0f, -1.0f, 0.0f,
+        +size.x, -size.y, -size.z, 0.0f, -1.0f, 0.0f,
+        +size.x, -size.y, +size.z, 0.0f, -1.0f, 0.0f,
+        -size.x, -size.y, +size.z, 0.0f, -1.0f, 0.0f,
+        
+        -size.x, +size.y, -size.z, 0.0f, 1.0f, 0.0f,
+        +size.x, +size.y, -size.z, 0.0f, 1.0f, 0.0f,
+        +size.x, +size.y, +size.z, 0.0f, 1.0f, 0.0f,
+        -size.x, +size.y, +size.z, 0.0f, 1.0f, 0.0f
     };
     
     vb = new VertexBuffer(vertices.data(), vertices.size() * sizeof(float));
@@ -55,24 +76,13 @@ void Cube::init()
     VertexBufferLayout layout;
     ib = new IndexBuffer(indices.data(), indices.size());
     layout.Push<float>(3); //pos
-    layout.Push<float>(3); //color
+    layout.Push<float>(3); //normals
 
     va->addBuffer(*vb, layout);
 
     va->unbind();
     ib->unbind();
     vb->unbind();
-}
-
-glm::mat4 Cube::getModelMatrix()
-{
-    glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), position);
-    modelMat = glm::rotate(modelMat, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    modelMat = glm::rotate(modelMat, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    modelMat = glm::rotate(modelMat, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    modelMat = glm::scale(modelMat, size);
-
-    return modelMat;
 }
 
 void Cube::draw(const Shader& shader, const Renderer& renderer)
