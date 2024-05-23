@@ -9,36 +9,47 @@
 #include "glm\gtc\type_ptr.hpp"
 
 Sphere::Sphere(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec2 size, glm::vec3 clr) 
-    : Object(pos, rot, glm::vec3(1.0f, 1.0f, 1.0f), clr), radius(radius), stacks(size.x), sectors(size.y)
+    : radius(radius), stacks(size.x), sectors(size.y)
 {
-    init();
+    init(pos, rot, radius, clr, Material::None);
 }
 
 Sphere::Sphere(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec2 size, glm::vec3 clr, Material::Type type) 
-    : Object(pos, rot, glm::vec3(1.0f, 1.0f, 1.0f), clr, type), stacks(size.x), sectors(size.y)
+    : radius(radius), stacks(size.x), sectors(size.y)
 {
-    init();
+    init(pos, rot, radius, clr, type);
+}
+
+void Sphere::init(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec3 clr, Material::Type type)
+{
+    transform = Transform(pos, rot, glm::vec3(radius, radius, radius));
+    std::vector<Vertex> initVerts;
+    std::vector<uint32_t> initIndic;
+
+    generateSphereVerticesAndIndices(initVerts, initIndic);
+    meshes.emplace_back(initVerts, initIndic, clr, type);
 }
 
 //Sphere generation help article - https://www.songho.ca/opengl/gl_sphere.html
-void Sphere::init()
-{
-    recalculateVertices();
-}
-
-void Sphere::draw(const Shader& shader, const Renderer& renderer)
-{
-    renderer.draw(*va, *ib, shader);
-}
-
 void Sphere::recalculateVertices()
 {
-    indices.clear();
-    vertices.clear();
+    std::vector<Vertex> updateVerts;
+    std::vector<uint32_t> updateIndic;
+
+    generateSphereVerticesAndIndices(updateVerts, updateIndic);
+    //First cause it is primitive type
+    meshes[0].newVertices(updateVerts);
+    meshes[0].newIndices(updateIndic);
+}
+
+void Sphere::generateSphereVerticesAndIndices(std::vector<Vertex>& verRef, std::vector<uint32_t>& indRef)
+{
     float inverseLength = 1.0f / radius;
 
     float sectorStepF = 2 * M_PI / sectors;
     float stackStepF = M_PI / stacks;
+    verRef.clear();
+    verRef.reserve(stacks * sectors);
 
     for (int stackStep = 0; stackStep <= stacks; stackStep++)
     {
@@ -52,30 +63,18 @@ void Sphere::recalculateVertices()
 
             float x = xy * cos(alpha);
             float y = xy * sin(alpha);
-
-            vertices.push_back(x);
-            vertices.push_back(y);
-            vertices.push_back(z);
-
             float xNormal = x * inverseLength;
             float yNormal = y * inverseLength;
             float zNormal = z * inverseLength;;
-
-            vertices.push_back(xNormal);
-            vertices.push_back(yNormal);
-            vertices.push_back(zNormal);
+            float s = (float)sectorStep / sectors;
+            float t = (float)stackStep / stacks;
+            verRef.emplace_back(x, y, z, xNormal, yNormal, zNormal, s, t);
         }
     }
 
-    //for (int i = 0; i < vertices.size(); i++)
-    //{
-    //    if (i % 6 == 0)
-    //        std::cout << std::endl;
-    //    std::cout << vertices[i] << ", ";
-    //}
-
     //Indicies
-    indices.clear();
+    indRef.clear();
+    indRef.reserve(stacks * sectors);
     for (int stackStep = 0; stackStep < stacks; stackStep++)
     {
         int i1 = stackStep * (sectors + 1);
@@ -83,42 +82,20 @@ void Sphere::recalculateVertices()
 
         for (int sectorStep = 0; sectorStep < sectors; sectorStep++)
         {
-            if (stackStep != 0)
-            {
-                indices.push_back(i1);
-                indices.push_back(i2);
-                indices.push_back(i1 + 1);
+            if (stackStep != 0) {
+                indRef.push_back(i1);
+                indRef.push_back(i2);
+                indRef.push_back(i1 + 1);
             }
 
-            if (stackStep != stacks + 1)
-            {
-                indices.push_back(i1 + 1);
-                indices.push_back(i2);
-                indices.push_back(i2 + 1);
+            if (stackStep != stacks + 1) {
+                indRef.push_back(i1 + 1);
+                indRef.push_back(i2);
+                indRef.push_back(i2 + 1);
             }
 
             i1++;
             i2++;
         }
     }
-
-    if (vb != nullptr)
-        delete vb;
-    if (va != nullptr)
-        delete va;
-    if (ib != nullptr)
-        delete ib;
-
-    vb = new VertexBuffer(vertices.data(), vertices.size() * sizeof(float));
-    va = new VertexArray();
-    VertexBufferLayout layout;
-    ib = new IndexBuffer(indices.data(), indices.size());
-    layout.Push<float>(3); //pos
-    layout.Push<float>(3); //normals
-
-    va->addBuffer(*vb, layout);
-
-    va->unbind();
-    ib->unbind();
-    vb->unbind();
 }

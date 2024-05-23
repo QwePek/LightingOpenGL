@@ -13,10 +13,12 @@
 #include "Rendering/VertexBuffer.h"
 #include "Rendering/VertexArray.h"
 #include "Rendering/VertexBufferLayout.h"
+#include "Rendering/Texture.h"
 #include "Camera.h"
 #include "Wall.h"
 #include "Objects/Primitives/Cube.h"
 #include "Objects/Lights/PointLight.h"
+#include "Objects/Lights/DirectionalLight.h"
 #include "Utils/Random.h"
 #include "Objects/Primitives/Sphere.h"
 #include "Objects/Primitives/Primitives.h"
@@ -30,6 +32,9 @@ float lastY = windowSize.y / 2.0f;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+enum shaderType { Phong, DepthBuffer, PBR };
+shaderType currentShaderType = shaderType::Phong;
 
 void processInput(GLFWwindow* window)
 {
@@ -64,6 +69,15 @@ void processInput(GLFWwindow* window)
     {
         cam.turnOnMouseMovement();
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        currentShaderType = shaderType::Phong;
+    }
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        currentShaderType = shaderType::DepthBuffer;
+    }
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        currentShaderType = shaderType::PBR;
     }
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -102,7 +116,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 int main()
-{
+{   
     srand(time(NULL));
     if (!glfwInit())
     {
@@ -154,14 +168,22 @@ int main()
     Renderer renderer;
     Shader lightShader("src/Rendering/Shaders/lightShader.shader");
     Shader myShader("src/Rendering/Shaders/shader.shader");
+    Shader depthShader("src/Rendering/Shaders/depthShader.shader");
     myShader.bind();
 
-    std::unique_ptr<Object> light = std::make_unique<PointLight>();
+    std::unique_ptr<Light> directionalLight = std::make_unique<DirectionalLight>(glm::vec3(0.4f, -1.0f, 0.05f));
+    std::vector<std::unique_ptr<Light>> pointLights;
+    int numOfLights = 2;
+    for (int i = 0; i < numOfLights; i++) {
+        float distance = Utils::Random::generateRandomNumber(1, 100);
+        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(0.0f, -5.0f + 10.0f * i, 0.0f), distance));
+    }
+
     std::vector<std::unique_ptr<Object>> worldObjects;
     int cubeCount = 100;
-    int minX = 20;
-    int minY = 20;
-    int minZ = 20;
+    int minX = 10;
+    int minY = 10;
+    int minZ = 10;
     worldObjects.reserve(cubeCount);
 
     for (int x = 0; x < cubeCount; x++)
@@ -169,6 +191,10 @@ int main()
         float r = Utils::Random::generateRandomNumber(0.0, 1.0f);
         float g = Utils::Random::generateRandomNumber(0.0, 1.0f);
         float b = Utils::Random::generateRandomNumber(0.0, 1.0f);
+
+        float sx = Utils::Random::generateRandomNumber(1.0f, 1.0f);
+        float sy = Utils::Random::generateRandomNumber(1.0f, 1.0f);
+        float sz = Utils::Random::generateRandomNumber(1.0f, 1.0f);
 
         float xPos = Utils::Random::generateRandomNumber(-minX, minX);
         float yPos = Utils::Random::generateRandomNumber(-minY, minY);
@@ -181,7 +207,7 @@ int main()
         {
             case Primitives::Models::Cube: 
                 obj = std::make_unique<Cube>(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(r, g, b), static_cast<Material::Type>(mat)); 
+                    glm::vec3(sx, sy, sz), glm::vec3(r, g, b), static_cast<Material::Type>(mat)); 
                 break;
             case Primitives::Models::Sphere: 
                 float radius = Utils::Random::generateRandomNumber(0.5f, 2.0f);
@@ -198,9 +224,12 @@ int main()
     glm::vec3 size = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-    glm::vec3 lightPos = light->getPosition();
-    glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
-    float lightIntensity = 1.0f;
+    Texture tx("res\\textures\\MetalContainer.png");
+    Texture tx1("res\\textures\\MetalContainer_specular.png");
+
+    myShader.unbind();
+    lightShader.unbind();
+    depthShader.unbind();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -216,58 +245,99 @@ int main()
         ImGui::NewFrame();
 
         {
-            cam.drawImGui();
+            //cam.drawImGui();
+            directionalLight->drawImGUI();
+            for (int i = 0; i < pointLights.size(); i++) {
+                pointLights[i]->drawImGUI(i);
+            }
 
             ImGui::Begin("Scene settings");
-            ImGui::DragFloat3("LightPosition", &lightPos[0], 0.05f);
-            ImGui::DragFloat3("LightColor", &lightColor[0], 0.05f, 0.0f, 1.0f);
-            ImGui::SliderFloat("LightIntensity", &lightIntensity, 0.0f, 10.0f);
-            ImGui::Separator();
             ImGui::DragFloat3("Size", &size[0]);
             ImGui::DragFloat3("Rotation", &rotation[0]);
             ImGui::End();
         }
         processInput(window);
 
-        //Light drawing
-        lightShader.bind();
+        switch (currentShaderType)
+        {
+            case Phong:
+                //Light drawing
+                lightShader.bind();
+                for (int i = 0; i < pointLights.size(); i++)
+                {
+                    lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                    lightShader.setUniformMat4f("view", cam.getViewMatrix());
+                    lightShader.setUniformMat4f("model", pointLights[i]->getModelMatrix());
+                    lightShader.setUniformVec3f("lightColor", pointLights[i]->getColor());
+                    pointLights[i]->draw(lightShader, renderer);
+                }
+                lightShader.unbind();
+                //Light drawing */
 
-        lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
-        lightShader.setUniformMat4f("view", cam.getViewMatrix());
-        lightShader.setUniformMat4f("model", light->getModelMatrix());
-        light->setPosition(lightPos);
-        light->setColor(lightIntensity * lightColor);
-        lightShader.setUniformVec3f("lightColor", light->getColor());
-        light->draw(lightShader, renderer);
+                myShader.bind();
 
-        lightShader.unbind();
-        //Light drawing */
+                myShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                myShader.setUniformMat4f("view", cam.getViewMatrix());
+                myShader.setUniformVec3f("viewPos", cam.getPosition());
 
-        //Objects drawing
-        myShader.bind();
+                //Directional light
+                myShader.setUniformVec3f("dirLight.direction", static_cast<DirectionalLight*>(directionalLight.get())->getDirection());
+                myShader.setUniformVec3f("dirLight.ambient", directionalLight->getAmbient());
+                myShader.setUniformVec3f("dirLight.diffuse", directionalLight->getDiffuse());
+                myShader.setUniformVec3f("dirLight.specular", directionalLight->getSpecular());
 
-        myShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
-        myShader.setUniformMat4f("view", cam.getViewMatrix());
-        myShader.setUniformVec3f("lightColor", light->getColor());
-        myShader.setUniformVec3f("lightPos", light->getPosition());
-        myShader.setUniformVec3f("viewPos", cam.getPosition());
+                //Point light
+                for (int i = 0; i < pointLights.size(); i++) {
+                    myShader.setUniformVec3f("pointLight[" + std::to_string(i) + "].position", pointLights[i]->getPosition());
+                    myShader.setUniformVec3f("pointLight[" + std::to_string(i) + "].ambient", pointLights[i]->getAmbient());
+                    myShader.setUniformVec3f("pointLight[" + std::to_string(i) + "].diffuse", pointLights[i]->getDiffuse());
+                    myShader.setUniformVec3f("pointLight[" + std::to_string(i) + "].specular", pointLights[i]->getSpecular());
+                    myShader.setUniform1f("pointLight[" + std::to_string(i) + "].constant", dynamic_cast<PointLight*>(pointLights[i].get())->getConstant());
+                    myShader.setUniform1f("pointLight[" + std::to_string(i) + "].linear", dynamic_cast<PointLight*>(pointLights[i].get())->getLinear());
+                    myShader.setUniform1f("pointLight[" + std::to_string(i) + "].quadratic", dynamic_cast<PointLight*>(pointLights[i].get())->getQuadratic());
+                }
+                break;
+
+            case DepthBuffer:
+                depthShader.bind();
+                depthShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                depthShader.setUniformMat4f("view", cam.getViewMatrix());
+                break;
+
+            case PBR:
+
+                break;
+        }
 
         for (auto& obj : worldObjects)
         {
+            obj->transform.setSize(size);
+            obj->transform.setRotation(rotation);
 
-            myShader.setUniformVec3f("material.ambient", obj->getAmbient());
-            myShader.setUniformVec3f("material.specular", obj->getSpecular());
-            myShader.setUniformVec3f("material.diffuse", obj->getDiffuse());
-            myShader.setUniform1f("material.shineness", obj->getShininess());
+            switch (currentShaderType)
+            {
+            case Phong:
+                tx.bind(0);
+                tx1.bind(1);
+                myShader.setUniform1i("material.diffuse", 0);
+                myShader.setUniform1i("material.specular", 1); //Assigning texture number of specular map
 
-            obj->setSize(size);
-            obj->setRotation(rotation);
+                //TODO doadac to do draw :)
+                myShader.setUniform1f("material.shineness", obj->meshes[0].getShininess());
+                myShader.setUniformMat4f("model", obj->transform.getModelMatrix());
+                obj->draw(myShader, renderer);
+                break;
 
-            myShader.setUniformMat4f("model", obj->getModelMatrix());
-            obj->draw(myShader, renderer);
+            case DepthBuffer:
+                depthShader.setUniformMat4f("model", obj->transform.getModelMatrix());
+                obj->draw(depthShader, renderer);
+                break;
+            }
         }
 
         myShader.unbind();
+        tx.unbind();
+        tx1.unbind();
         //Objects drawing */
 
         //End Draw

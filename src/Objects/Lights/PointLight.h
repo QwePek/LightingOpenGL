@@ -1,14 +1,24 @@
 #pragma once
-#include "../Object.h"
+#include "Light.h"
 
-class PointLight : public Object
+class PointLight : public Light
 {
 public:
-	PointLight() { init(); }
-	PointLight(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr);
+	PointLight(glm::vec3 pos, float distance);
 
 	void draw(const Shader& shader, const Renderer& renderer);
+	void drawImGUI(uint32_t additionalID);
+
+	void setLightDistance(float dist);
+	inline float getConstant() { return constant; }
+	inline float getLinear() { return linear; }
+	inline float getQuadratic() { return quadratic; }
 
 private:
 	void init();
+
+	float coveringDistance;
+	float constant;
+	float linear;
+	float quadratic;
 };

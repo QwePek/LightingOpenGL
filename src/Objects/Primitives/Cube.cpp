@@ -1,23 +1,26 @@
 #include "pch.h"
 #include "Cube.h"
-#include "../../Rendering/VertexBufferLayout.h"
 #include "glm\glm.hpp"
 #include "glm\gtc\matrix_transform.hpp"
 #include "glm\gtc\type_ptr.hpp"
+#include "../Components/Transform/Transform.h"
 
-Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr) : Object(pos, rot, sz, clr)
+Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr)
 {
-    init();
+    init(pos, rot, sz, clr, Material::None);
 }
 
-Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Material::Type type) : Object(pos, rot, sz, clr, type)
+Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Material::Type type)
 {
-    init();
+    init(pos, rot, sz, clr, type);
 }
 
-void Cube::init()
+void Cube::init(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Material::Type type)
 {
-    indices = {
+    transform = Transform(pos, rot, sz);
+    glm::vec3 size = transform.getSize();
+
+    std::vector<uint32_t>indices = {
         //Top
         0,1,2,
         0,2,3,
@@ -38,54 +41,44 @@ void Cube::init()
         20,22,23
     };
     
-    vertices = {
-        //Position                //Normals
-        -size.x, -size.y, -size.z, 0.0f,  0.0f, -1.0f,
-        +size.x, -size.y, -size.z, 0.0f,  0.0f, -1.0f,
-        +size.x, +size.y, -size.z, 0.0f,  0.0f, -1.0f,
-        -size.x, +size.y, -size.z, 0.0f,  0.0f, -1.0f,
+    std::vector<Vertex> vertices = {
+        //Position                //Normals          //Texture coords
+        Vertex(-size.x, -size.y, -size.z, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f),
+        Vertex(+size.x, -size.y, -size.z, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f),
+        Vertex(+size.x, +size.y, -size.z, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f),
+        Vertex(-size.x, +size.y, -size.z, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f),
 
-        -size.x, -size.y, +size.z, 0.0f,  0.0f, 1.0f,
-        +size.x, -size.y, +size.z, 0.0f,  0.0f, 1.0f,
-        +size.x, +size.y, +size.z, 0.0f,  0.0f, 1.0f,
-        -size.x, +size.y, +size.z, 0.0f,  0.0f, 1.0f,
+        Vertex(-size.x, -size.y, +size.z, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f),
+        Vertex(+size.x, -size.y, +size.z, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f),
+        Vertex(+size.x, +size.y, +size.z, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f),
+        Vertex(-size.x, +size.y, +size.z, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f),
+
+        Vertex(-size.x, +size.y, +size.z, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f),
+        Vertex(-size.x, +size.y, -size.z, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f),
+        Vertex(-size.x, -size.y, -size.z, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f),
+        Vertex(-size.x, -size.y, +size.z, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f),
         
-        -size.x, +size.y, +size.z, -1.0f,  0.0f, 0.0f,
-        -size.x, +size.y, -size.z, -1.0f,  0.0f, 0.0f,
-        -size.x, -size.y, -size.z, -1.0f,  0.0f, 0.0f,
-        -size.x, -size.y, +size.z, -1.0f,  0.0f, 0.0f,
-        
-        +size.x, +size.y, +size.z, 1.0f,  0.0f, 0.0f,
-        +size.x, +size.y, -size.z, 1.0f,  0.0f, 0.0f,
-        +size.x, -size.y, -size.z, 1.0f,  0.0f, 0.0f,
-        +size.x, -size.y, +size.z, 1.0f,  0.0f, 0.0f,
-        
-        -size.x, -size.y, -size.z, 0.0f, -1.0f, 0.0f,
-        +size.x, -size.y, -size.z, 0.0f, -1.0f, 0.0f,
-        +size.x, -size.y, +size.z, 0.0f, -1.0f, 0.0f,
-        -size.x, -size.y, +size.z, 0.0f, -1.0f, 0.0f,
-        
-        -size.x, +size.y, -size.z, 0.0f, 1.0f, 0.0f,
-        +size.x, +size.y, -size.z, 0.0f, 1.0f, 0.0f,
-        +size.x, +size.y, +size.z, 0.0f, 1.0f, 0.0f,
-        -size.x, +size.y, +size.z, 0.0f, 1.0f, 0.0f
+        Vertex(+size.x, +size.y, +size.z, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f),
+        Vertex(+size.x, +size.y, -size.z, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f),
+        Vertex(+size.x, -size.y, -size.z, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f),
+        Vertex(+size.x, -size.y, +size.z, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f),
+
+        Vertex(-size.x, -size.y, -size.z, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f),
+        Vertex(+size.x, -size.y, -size.z, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f),
+        Vertex(+size.x, -size.y, +size.z, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f),
+        Vertex(-size.x, -size.y, +size.z, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f),
+
+        Vertex(-size.x, +size.y, -size.z, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f),
+        Vertex(+size.x, +size.y, -size.z, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f),
+        Vertex(+size.x, +size.y, +size.z, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f),
+        Vertex(-size.x, +size.y, +size.z, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f)
     };
-    
-    vb = new VertexBuffer(vertices.data(), vertices.size() * sizeof(float));
-    va = new VertexArray();
-    VertexBufferLayout layout;
-    ib = new IndexBuffer(indices.data(), indices.size());
-    layout.Push<float>(3); //pos
-    layout.Push<float>(3); //normals
 
-    va->addBuffer(*vb, layout);
-
-    va->unbind();
-    ib->unbind();
-    vb->unbind();
-}
-
-void Cube::draw(const Shader& shader, const Renderer& renderer)
-{
-	renderer.draw(*va, *ib, shader);
+    if (meshes.size() != 0)
+    {
+        meshes[0].newVertices(vertices);
+        meshes[0].newIndices(indices);
+    }
+    else
+        meshes.emplace_back(vertices, indices, clr, type);
 }

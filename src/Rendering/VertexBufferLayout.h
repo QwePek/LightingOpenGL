@@ -26,7 +26,9 @@ struct VertexBufferElement
 class VertexBufferLayout
 {
 public:
-	VertexBufferLayout() : stride(0) {};
+	VertexBufferLayout() {};
+
+	void reset() { stride = 0; length = 0; elements.clear(); }
 
 	template<typename T>
 	void Push(unsigned int count) = delete;
@@ -36,6 +38,7 @@ public:
 	{
 		elements.push_back({ GL_FLOAT, count, GL_FALSE });
 		stride += count * VertexBufferElement::getSizeOfType(GL_FLOAT);
+		length += count;
 	}
 
 	template<>
@@ -43,6 +46,7 @@ public:
 	{
 		elements.push_back({ GL_UNSIGNED_INT, count, GL_FALSE });
 		stride += count * VertexBufferElement::getSizeOfType(GL_UNSIGNED_INT);
+		length += count;
 	}
 
 	template<>
@@ -50,12 +54,15 @@ public:
 	{
 		elements.push_back({ GL_UNSIGNED_BYTE, count, GL_TRUE });
 		stride += count * VertexBufferElement::getSizeOfType(GL_UNSIGNED_BYTE);
+		length += count;
 	}
 
 	inline const std::vector<VertexBufferElement> getElements() const& { return elements; };
-	inline unsigned int getStride() const { return stride; };
+	inline uint32_t getStride() const { return stride; };
+	inline size_t getLength() { return length; }
 
 private:
 	std::vector<VertexBufferElement> elements;
-	unsigned int stride = 0;
+	uint32_t stride = 0;
+	uint32_t length = 0;
 };

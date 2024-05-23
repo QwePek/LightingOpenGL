@@ -1,17 +1,16 @@
 #pragma once
-#include "glm/glm.hpp"
-#include "../../Rendering/Renderer.h"
 #include "../Object.h"
-#include "../Material.h"
 
 class Sphere : public Object
 {
 public:
-	Sphere() { init(); }
+	Sphere() {
+		init(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), 1.0f, glm::vec3(1.0f, 1.0f, 1.0f), Material::Type::None);
+	}
 	Sphere(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec2 size, glm::vec3 clr);
 	Sphere(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec2 size, glm::vec3 clr, Material::Type type);
 
-	void draw(const Shader& shader, const Renderer& renderer);
+	void drawImGUI(uint32_t additionalID) { };
 
 	inline void setRadius(float r) { radius = r; recalculateVertices(); }
 	inline void setStack(uint16_t st) { stacks = st; recalculateVertices(); }
@@ -22,8 +21,10 @@ public:
 	inline uint16_t setSectors() { return sectors; }
 
 private:
-	void init();
+	void init(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec3 clr, Material::Type type);
 	void recalculateVertices();
+
+	void generateSphereVerticesAndIndices(std::vector<Vertex>& vecRef, std::vector<uint32_t>& indRef);
 
 	float radius = 1.0f;
 	uint16_t stacks = 2, sectors = 2;
