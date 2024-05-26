@@ -15,7 +15,8 @@ Camera::Camera(glm::vec3 pos = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::
     this->yaw = yaw;
     this->pitch = pitch;
     this->roll = roll;
-    
+
+    this->defaultSpeed = speed;
     rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(roll), front);
 
     recalculateCameraVectors();
@@ -29,6 +30,7 @@ Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float u
     this->pitch = pitch;
     this->roll = roll;
 
+    this->defaultSpeed = speed;
     rollMat = glm::rotate(glm::mat4(1.0f), glm::radians(roll), front);
 
     recalculateCameraVectors();

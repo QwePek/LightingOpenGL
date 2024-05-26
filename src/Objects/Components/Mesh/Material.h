@@ -10,7 +10,8 @@ namespace Material
         Emerald, Jade, Obsidian,
         Pearl, Ruby, Turquoise,
         Brass, Bronze, Chrome,
-        Copper, Gold, Silver, 
+        Copper, Gold, Silver,
+        Wood,
         MATERIAL_SIZE
     };
 
@@ -42,6 +43,8 @@ namespace Material
             return glm::vec3(0.24725f, 0.1995f, 0.0745f);
         case Type::Silver:
             return glm::vec3(0.19225f, 0.19225f, 0.19225f);
+        case Type::Wood:
+            return glm::vec3(0.3f, 0.2f, 0.1f);
         default:
             return glm::vec3(0.0f);
         }
@@ -76,6 +79,8 @@ namespace Material
             return glm::vec3(0.75164f, 0.60648f, 0.22648f);
         case Type::Silver:
             return glm::vec3(0.50754f, 0.50754f, 0.50754f);
+        case Type::Wood:
+            return glm::vec3(0.6f, 0.4f, 0.2f);
         default:
             return glm::vec3(0.0f);
         }
@@ -109,6 +114,8 @@ namespace Material
             return glm::vec3(0.628281f, 0.555802f, 0.366065f);
         case Type::Silver:
             return glm::vec3(0.508273f, 0.508273f, 0.508273f);
+        case Type::Wood:
+            return glm::vec3(0.1f, 0.1f, 0.1f);
         default:
             return glm::vec3(0.0f);
         }
@@ -142,6 +149,8 @@ namespace Material
             return 0.4f;
         case Type::Silver:
             return 0.4f;
+        case Type::Wood:
+            return 0.078125f;
         default:
             return 32;
         }

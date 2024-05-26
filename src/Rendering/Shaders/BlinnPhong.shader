@@ -69,8 +69,8 @@ vec3 calculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 	float diff = max(dot(normal, lightDir), 0.0);
 
 	//Specular
-	vec3 reflectDir = reflect(-lightDir, normal);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shineness * 128);
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shineness * 128);
 
 	//Final Calculations
 	vec3 ambient = light.ambient * texture(material.diffuse, texCoord).rgb;
@@ -88,8 +88,8 @@ vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPosition, vec3 
 	float diff = max(dot(normal, lightDir), 0.0);
 
 	//Specular
-	vec3 reflectDir = reflect(-lightDir, normal);
-	float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shineness * 128);
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shineness * 128);
 
 	//Light attenuation
 	float distance = length(light.position - fragPosition);

@@ -33,7 +33,7 @@ float lastY = windowSize.y / 2.0f;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-enum shaderType { Phong, DepthBuffer, PBR };
+enum shaderType { Phong, DepthBuffer, Blinn_Phong, PBR };
 shaderType currentShaderType = shaderType::Phong;
 
 void processInput(GLFWwindow* window)
@@ -59,6 +59,11 @@ void processInput(GLFWwindow* window)
         cam.processInput(direction::LEANLEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         cam.processInput(direction::LEANRIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        cam.setSpeed(cam.getDefaultSpeed() * 5);
+    else
+        cam.setSpeed(cam.getDefaultSpeed());
+
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
     {
@@ -73,13 +78,19 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
         currentShaderType = shaderType::Phong;
     }
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
-        currentShaderType = shaderType::DepthBuffer;
-    }
     if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        currentShaderType = shaderType::Blinn_Phong;
+    }
+    if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
         currentShaderType = shaderType::PBR;
     }
 
+
+
+    if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS) {
+        currentShaderType = shaderType::DepthBuffer;
+    }
+    
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
@@ -152,6 +163,7 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
+    //glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //imgui
@@ -168,15 +180,17 @@ int main()
     Renderer renderer;
     Shader lightShader("src/Rendering/Shaders/lightShader.shader");
     Shader myShader("src/Rendering/Shaders/shader.shader");
+    Shader blinnPhong("src/Rendering/Shaders/BlinnPhong.shader");
     Shader depthShader("src/Rendering/Shaders/depthShader.shader");
     myShader.bind();
 
     std::unique_ptr<Light> directionalLight = std::make_unique<DirectionalLight>(glm::vec3(0.4f, -1.0f, 0.05f));
+    bool dirLight = false;
     std::vector<std::unique_ptr<Light>> pointLights;
-    int numOfLights = 2;
+    int numOfLights = 1;
     for (int i = 0; i < numOfLights; i++) {
         float distance = Utils::Random::generateRandomNumber(1, 100);
-        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(0.0f, -5.0f + 10.0f * i, 0.0f), distance));
+        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(0.0f, 3.0f - 6.0f * i, 0.0f), distance));
     }
 
     std::vector<std::unique_ptr<Object>> worldObjects;
@@ -185,49 +199,56 @@ int main()
     int minY = 10;
     int minZ = 10;
     worldObjects.reserve(cubeCount);
+    std::unique_ptr<Object> floor = std::make_unique<Cube>(glm::vec3(0, 0, 0), glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(10, 0.1f, 10), glm::vec3(1.0, 1.0, 1.0), Material::Wood);
+    worldObjects.push_back(std::move(floor));
 
-    for (int x = 0; x < cubeCount; x++)
-    {
-        float r = Utils::Random::generateRandomNumber(0.0, 1.0f);
-        float g = Utils::Random::generateRandomNumber(0.0, 1.0f);
-        float b = Utils::Random::generateRandomNumber(0.0, 1.0f);
 
-        float sx = Utils::Random::generateRandomNumber(1.0f, 1.0f);
-        float sy = Utils::Random::generateRandomNumber(1.0f, 1.0f);
-        float sz = Utils::Random::generateRandomNumber(1.0f, 1.0f);
+    //for (int x = 0; x < cubeCount; x++)
+    //{
+    //    float r = Utils::Random::generateRandomNumber(0.0, 1.0f);
+    //    float g = Utils::Random::generateRandomNumber(0.0, 1.0f);
+    //    float b = Utils::Random::generateRandomNumber(0.0, 1.0f);
 
-        float xPos = Utils::Random::generateRandomNumber(-minX, minX);
-        float yPos = Utils::Random::generateRandomNumber(-minY, minY);
-        float zPos = Utils::Random::generateRandomNumber(-minZ, minZ);
-        int mat = Utils::Random::generateRandomNumber(2, Material::MATERIAL_SIZE);
+    //    float sx = Utils::Random::generateRandomNumber(1.0f, 1.0f);
+    //    float sy = Utils::Random::generateRandomNumber(1.0f, 1.0f);
+    //    float sz = Utils::Random::generateRandomNumber(1.0f, 1.0f);
 
-        int primitive = Utils::Random::generateRandomNumber(0, Primitives::Models::MODELS_COUNT);
-        std::unique_ptr<Object> obj;
-        switch (primitive)
-        {
-            case Primitives::Models::Cube: 
-                obj = std::make_unique<Cube>(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
-                    glm::vec3(sx, sy, sz), glm::vec3(r, g, b), static_cast<Material::Type>(mat)); 
-                break;
-            case Primitives::Models::Sphere: 
-                float radius = Utils::Random::generateRandomNumber(0.5f, 2.0f);
-                int size = Utils::Random::generateRandomNumber(6, 30);
+    //    float xPos = Utils::Random::generateRandomNumber(-minX, minX);
+    //    float yPos = Utils::Random::generateRandomNumber(-minY, minY);
+    //    float zPos = Utils::Random::generateRandomNumber(-minZ, minZ);
+    //    int mat = Utils::Random::generateRandomNumber(2, Material::MATERIAL_SIZE);
 
-                obj = std::make_unique<Sphere>(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
-                    radius, glm::vec2(size, size), glm::vec3(r, g, b), static_cast<Material::Type>(mat));
-                break;
-        }
+    //    int primitive = Utils::Random::generateRandomNumber(0, Primitives::Models::MODELS_COUNT);
+    //    std::unique_ptr<Object> obj;
+    //    switch (primitive)
+    //    {
+    //        case Primitives::Models::Cube: 
+    //            obj = std::make_unique<Cube>(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
+    //                glm::vec3(sx, sy, sz), glm::vec3(r, g, b), static_cast<Material::Type>(mat)); 
+    //            break;
+    //        case Primitives::Models::Sphere: 
+    //            float radius = Utils::Random::generateRandomNumber(0.5f, 2.0f);
+    //            int size = Utils::Random::generateRandomNumber(6, 30);
 
-        worldObjects.push_back(std::move(obj));
-    }
+    //            obj = std::make_unique<Sphere>(glm::vec3(xPos, yPos, zPos), glm::vec3(0.0f, 0.0f, 0.0f),
+    //                radius, glm::vec2(size, size), glm::vec3(r, g, b), static_cast<Material::Type>(mat));
+    //            break;
+    //    }
+
+    //    worldObjects.push_back(std::move(obj));
+    //}
 
     glm::vec3 size = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
     Texture tx("res\\textures\\MetalContainer.png");
     Texture tx1("res\\textures\\MetalContainer_specular.png");
+    Texture floorTx("res\\textures\\Floor\\Diffuse.jpg");
+    Texture floorSpec("res\\textures\\Floor\\Specular.jpg");
 
     myShader.unbind();
+    blinnPhong.unbind();
     lightShader.unbind();
     depthShader.unbind();
 
@@ -246,7 +267,8 @@ int main()
 
         {
             //cam.drawImGui();
-            directionalLight->drawImGUI();
+            if(dirLight)
+                directionalLight->drawImGUI();
             for (int i = 0; i < pointLights.size(); i++) {
                 pointLights[i]->drawImGUI(i);
             }
@@ -281,10 +303,12 @@ int main()
                 myShader.setUniformVec3f("viewPos", cam.getPosition());
 
                 //Directional light
-                myShader.setUniformVec3f("dirLight.direction", static_cast<DirectionalLight*>(directionalLight.get())->getDirection());
-                myShader.setUniformVec3f("dirLight.ambient", directionalLight->getAmbient());
-                myShader.setUniformVec3f("dirLight.diffuse", directionalLight->getDiffuse());
-                myShader.setUniformVec3f("dirLight.specular", directionalLight->getSpecular());
+                if (dirLight) {
+                    myShader.setUniformVec3f("dirLight.direction", static_cast<DirectionalLight*>(directionalLight.get())->getDirection());
+                    myShader.setUniformVec3f("dirLight.ambient", directionalLight->getAmbient());
+                    myShader.setUniformVec3f("dirLight.diffuse", directionalLight->getDiffuse());
+                    myShader.setUniformVec3f("dirLight.specular", directionalLight->getSpecular());
+                }
 
                 //Point light
                 for (int i = 0; i < pointLights.size(); i++) {
@@ -304,6 +328,46 @@ int main()
                 depthShader.setUniformMat4f("view", cam.getViewMatrix());
                 break;
 
+            case Blinn_Phong:
+                //Light drawing
+                lightShader.bind();
+                for (int i = 0; i < pointLights.size(); i++)
+                {
+                    lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                    lightShader.setUniformMat4f("view", cam.getViewMatrix());
+                    lightShader.setUniformMat4f("model", pointLights[i]->getModelMatrix());
+                    lightShader.setUniformVec3f("lightColor", pointLights[i]->getColor());
+                    pointLights[i]->draw(lightShader, renderer);
+                }
+                lightShader.unbind();
+                //Light drawing */
+
+                blinnPhong.bind();
+
+                blinnPhong.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                blinnPhong.setUniformMat4f("view", cam.getViewMatrix());
+                blinnPhong.setUniformVec3f("viewPos", cam.getPosition());
+
+                //Directional light
+                if (dirLight) {
+                    blinnPhong.setUniformVec3f("dirLight.direction", static_cast<DirectionalLight*>(directionalLight.get())->getDirection());
+                    blinnPhong.setUniformVec3f("dirLight.ambient", directionalLight->getAmbient());
+                    blinnPhong.setUniformVec3f("dirLight.diffuse", directionalLight->getDiffuse());
+                    blinnPhong.setUniformVec3f("dirLight.specular", directionalLight->getSpecular());
+                }
+
+                //Point light
+                for (int i = 0; i < pointLights.size(); i++) {
+                    blinnPhong.setUniformVec3f("pointLight[" + std::to_string(i) + "].position", pointLights[i]->getPosition());
+                    blinnPhong.setUniformVec3f("pointLight[" + std::to_string(i) + "].ambient", pointLights[i]->getAmbient());
+                    blinnPhong.setUniformVec3f("pointLight[" + std::to_string(i) + "].diffuse", pointLights[i]->getDiffuse());
+                    blinnPhong.setUniformVec3f("pointLight[" + std::to_string(i) + "].specular", pointLights[i]->getSpecular());
+                    blinnPhong.setUniform1f("pointLight[" + std::to_string(i) + "].constant", dynamic_cast<PointLight*>(pointLights[i].get())->getConstant());
+                    blinnPhong.setUniform1f("pointLight[" + std::to_string(i) + "].linear", dynamic_cast<PointLight*>(pointLights[i].get())->getLinear());
+                    blinnPhong.setUniform1f("pointLight[" + std::to_string(i) + "].quadratic", dynamic_cast<PointLight*>(pointLights[i].get())->getQuadratic());
+                }
+                break;
+
             case PBR:
 
                 break;
@@ -317,8 +381,8 @@ int main()
             switch (currentShaderType)
             {
             case Phong:
-                tx.bind(0);
-                tx1.bind(1);
+                floorTx.bind(0);
+                floorSpec.bind(1);
                 myShader.setUniform1i("material.diffuse", 0);
                 myShader.setUniform1i("material.specular", 1); //Assigning texture number of specular map
 
@@ -326,18 +390,40 @@ int main()
                 myShader.setUniform1f("material.shineness", obj->meshes[0].getShininess());
                 myShader.setUniformMat4f("model", obj->transform.getModelMatrix());
                 obj->draw(myShader, renderer);
+                
+                floorTx.unbind();
+                floorSpec.unbind();
                 break;
 
             case DepthBuffer:
                 depthShader.setUniformMat4f("model", obj->transform.getModelMatrix());
                 obj->draw(depthShader, renderer);
                 break;
+
+            case Blinn_Phong:
+                floorTx.bind(0);
+                floorSpec.bind(1);
+                blinnPhong.setUniform1i("material.diffuse", 0);
+                blinnPhong.setUniform1i("material.specular", 1); //Assigning texture number of specular map
+
+                //TODO doadac to do draw :)
+                blinnPhong.setUniform1f("material.shineness", obj->meshes[0].getShininess());
+                blinnPhong.setUniformMat4f("model", obj->transform.getModelMatrix());
+                obj->draw(blinnPhong, renderer);
+
+                floorTx.unbind();
+                floorSpec.unbind();
+                break;
             }
         }
 
-        myShader.unbind();
-        tx.unbind();
-        tx1.unbind();
+        switch (currentShaderType)
+        {
+        case Phong: myShader.unbind(); break;
+        case DepthBuffer: depthShader.unbind(); break;
+        case Blinn_Phong: blinnPhong.unbind(); break;
+        case PBR: break;
+        }
         //Objects drawing */
 
         //End Draw

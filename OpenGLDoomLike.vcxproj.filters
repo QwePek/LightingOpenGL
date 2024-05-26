@@ -1456,5 +1456,6 @@
     <None Include="src\Rendering\Shaders\shader.shader" />
     <None Include="src\Rendering\Shaders\lightShader.shader" />
     <None Include="src\Rendering\Shaders\depthShader.shader" />
+    <None Include="src\Rendering\Shaders\BlinnPhong.shader" />
   </ItemGroup>
 </Project>

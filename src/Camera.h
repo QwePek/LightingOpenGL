@@ -18,6 +18,7 @@ public:
 
 	//Getters
 	float getSpeed() const { return speed; };
+	float getDefaultSpeed() const { return defaultSpeed; };
 	float getMouseSensitivity() const { return mouseSensitivity; };
 	glm::vec3 getPosition() const { return position; };
 
@@ -55,8 +56,9 @@ private:
 	float yaw = -90.0f; //Patrzenie w boki
 	float pitch = 0.0f; //Patrzenie w gore
 	float roll = 0.0f;  //Obracanie sie jak beczka
-	
+
 	float speed = 3.0f;
+	float defaultSpeed = 3.0f;
 	float mouseSensitivity = 0.1f;
 	float zoom = 45.0f;
 
