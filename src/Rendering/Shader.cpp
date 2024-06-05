@@ -3,7 +3,7 @@
 
 #include "GL/glew.h"
 
-Shader::Shader(const char* filePath)
+Shader::Shader(const char* filePath, shaderType shType) : type(shType)
 {
     ShaderProgramSource src = parseShader(filePath);
 

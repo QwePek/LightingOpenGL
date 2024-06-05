@@ -6,7 +6,8 @@ class Object
 {
 public:
 	Object() {}
-	void draw(const Shader& shader, const Renderer& renderer) {
+	void draw(Shader& shader, const Renderer& renderer) {
+		shader.setUniformMat4f("model", transform.getModelMatrix());
 		for (Mesh& m : meshes)
 			m.draw(shader, renderer);
 	}

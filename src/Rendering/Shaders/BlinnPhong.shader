@@ -28,7 +28,7 @@ struct Material {
 	sampler2D specular;
 	float shineness;
 };
-uniform Material material;
+uniform Material material0;
 
 struct DirectionalLight {
 	vec3 direction;
@@ -70,12 +70,12 @@ vec3 calculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir
 
 	//Specular
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-	float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shineness * 128);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), material0.shineness * 128);
 
 	//Final Calculations
-	vec3 ambient = light.ambient * texture(material.diffuse, texCoord).rgb;
-	vec3 diffuse = light.diffuse * diff * texture(material.diffuse, texCoord).rgb;
-	vec3 specular = light.specular * spec * texture(material.specular, texCoord).rgb;
+	vec3 ambient = light.ambient * texture(material0.diffuse, texCoord).rgb;
+	vec3 diffuse = light.diffuse * diff * texture(material0.diffuse, texCoord).rgb;
+	vec3 specular = light.specular * spec * texture(material0.specular, texCoord).rgb;
 
 	return (ambient + diffuse + specular);
 }
@@ -89,16 +89,16 @@ vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPosition, vec3 
 
 	//Specular
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-	float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shineness * 128);
+	float spec = pow(max(dot(normal, halfwayDir), 0.0), material0.shineness * 128);
 
 	//Light attenuation
 	float distance = length(light.position - fragPosition);
 	float attenuation = 1.0f / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
 	//Final Calculations
-	vec3 ambient = light.ambient * texture(material.diffuse, texCoord).rgb;
-	vec3 diffuse = light.diffuse * diff * texture(material.diffuse, texCoord).rgb;
-	vec3 specular = light.specular * spec * texture(material.specular, texCoord).rgb;
+	vec3 ambient = light.ambient * texture(material0.diffuse, texCoord).rgb;
+	vec3 diffuse = light.diffuse * diff * texture(material0.diffuse, texCoord).rgb;
+	vec3 specular = light.specular * spec * texture(material0.specular, texCoord).rgb;
 
 	ambient *= attenuation;
 	diffuse *= attenuation;
