@@ -8,13 +8,13 @@
 #include "glm\gtc\matrix_transform.hpp"
 #include "glm\gtc\type_ptr.hpp"
 
-Sphere::Sphere(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec2 size, glm::vec3 clr) 
+Sphere::Sphere(glm::vec3 pos, glm::vec3 rot, float radius, glm::u32vec2 size, glm::vec3 clr) 
     : radius(radius), stacks(size.x), sectors(size.y)
 {
     init(pos, rot, radius, clr, Material::None);
 }
 
-Sphere::Sphere(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec2 size, glm::vec3 clr, Material::Type type) 
+Sphere::Sphere(glm::vec3 pos, glm::vec3 rot, float radius, glm::u32vec2 size, glm::vec3 clr, Material::Type type) 
     : radius(radius), stacks(size.x), sectors(size.y)
 {
     init(pos, rot, radius, clr, type);
@@ -27,7 +27,7 @@ void Sphere::init(glm::vec3 pos, glm::vec3 rot, float radius, glm::vec3 clr, Mat
     std::vector<uint32_t> initIndic;
 
     generateSphereVerticesAndIndices(initVerts, initIndic);
-    meshes.emplace_back(initVerts, initIndic, clr, type);
+    model->meshes.emplace_back(initVerts, initIndic, clr, type);
 }
 
 //Sphere generation help article - https://www.songho.ca/opengl/gl_sphere.html
@@ -38,36 +38,36 @@ void Sphere::recalculateVertices()
 
     generateSphereVerticesAndIndices(updateVerts, updateIndic);
     //First cause it is primitive type
-    meshes[0].newVertices(updateVerts);
-    meshes[0].newIndices(updateIndic);
+    model->meshes[0].newVertices(updateVerts);
+    model->meshes[0].newIndices(updateIndic);
 }
 
 void Sphere::generateSphereVerticesAndIndices(std::vector<Vertex>& verRef, std::vector<uint32_t>& indRef)
 {
     float inverseLength = 1.0f / radius;
 
-    float sectorStepF = 2 * M_PI / sectors;
-    float stackStepF = M_PI / stacks;
+    double sectorStepF = 2 * M_PI / sectors;
+    double stackStepF = M_PI / stacks;
     verRef.clear();
     verRef.reserve(stacks * sectors);
 
-    for (int stackStep = 0; stackStep <= stacks; stackStep++)
+    for (uint32_t stackStep = 0; stackStep <= stacks; stackStep++)
     {
-        float beta = M_PI_2 - stackStep * stackStepF;
+        double beta = M_PI_2 - stackStep * stackStepF;
 
-        float xy = radius * cos(beta);
-        float z = radius * sin(beta);
-        for (int sectorStep = 0; sectorStep <= sectors; sectorStep++)
+        double xy = radius * cos(beta);
+        double z = radius * sin(beta);
+        for (uint32_t sectorStep = 0; sectorStep <= sectors; sectorStep++)
         {
-            float alpha = sectorStep * sectorStepF;
+            double alpha = sectorStep * sectorStepF;
 
-            float x = xy * cos(alpha);
-            float y = xy * sin(alpha);
-            float xNormal = x * inverseLength;
-            float yNormal = y * inverseLength;
-            float zNormal = z * inverseLength;;
-            float s = (float)sectorStep / sectors;
-            float t = (float)stackStep / stacks;
+            double x = xy * cos(alpha);
+            double y = xy * sin(alpha);
+            double xNormal = x * inverseLength;
+            double yNormal = y * inverseLength;
+            double zNormal = z * inverseLength;;
+            double s = (double)sectorStep / sectors;
+            double t = (double)stackStep / stacks;
             verRef.emplace_back(x, y, z, xNormal, yNormal, zNormal, s, t);
         }
     }
@@ -75,12 +75,12 @@ void Sphere::generateSphereVerticesAndIndices(std::vector<Vertex>& verRef, std::
     //Indicies
     indRef.clear();
     indRef.reserve(stacks * sectors);
-    for (int stackStep = 0; stackStep < stacks; stackStep++)
+    for (uint32_t stackStep = 0; stackStep < stacks; stackStep++)
     {
         int i1 = stackStep * (sectors + 1);
         int i2 = i1 + (sectors + 1);
 
-        for (int sectorStep = 0; sectorStep < sectors; sectorStep++)
+        for (uint32_t sectorStep = 0; sectorStep < sectors; sectorStep++)
         {
             if (stackStep != 0) {
                 indRef.push_back(i1);

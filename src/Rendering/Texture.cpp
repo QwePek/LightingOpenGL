@@ -6,11 +6,13 @@
 
 #include "Renderer.h"
 
-Texture::Texture(const std::string& path)
-	: texturePath(path), texID(0), textureBuffer(nullptr), width(0), height(0), numOfChannels(0)
+Texture::Texture(const std::string& path, TextureType t)
+	: path(path), type(t), texID(0), textureBuffer(nullptr), width(0), height(0), numOfChannels(0)
 {
+	std::cout << "Constructing texture: " << path << std::endl;
+
 	stbi_set_flip_vertically_on_load(true);
-	textureBuffer = stbi_load(texturePath.c_str(), &width, &height, &numOfChannels, 4);
+	textureBuffer = stbi_load(path.c_str(), &width, &height, &numOfChannels, 4);
 
 	GLCall(glGenTextures(1, &texID));
 	GLCall(glBindTexture(GL_TEXTURE_2D, texID));
@@ -27,13 +29,13 @@ Texture::Texture(const std::string& path)
 		stbi_image_free(textureBuffer);
 	else
 		std::cout << "FAILED TO LOAD TEXTURE!" << std::endl;
-
 	unbind();
 }
 
 Texture::~Texture()
 {
 	GLCall(glDeleteTextures(1, &texID));
+	std::cout << "Deleting texture: " << path << std::endl;
 }
 
 void Texture::bind(uint32_t slot) const

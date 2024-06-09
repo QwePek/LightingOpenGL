@@ -1,10 +1,12 @@
 #pragma once
 #include <iostream>
 
+enum TextureType { None, Diffuse, Specular };
+
 class Texture
 {
 public:
-	Texture(const std::string& path);
+	Texture(const std::string& path, TextureType type);
 	~Texture();
 
 	void bind(uint32_t slot = 0) const;
@@ -13,11 +15,14 @@ public:
 	inline int getWidth() const { return width; }
 	inline int getHeight() const { return height; }
 
-	inline uint32_t getTextureID() { return texID; }
+	inline uint32_t getID() { return texID; }
+	inline std::string getPath() { return path; }
+	inline TextureType getType() { return type; }
 
 private:
 	uint32_t texID;
-	std::string texturePath;
+	TextureType type;
+	std::string path;
 
 	unsigned char* textureBuffer;
 	int width, height, numOfChannels;

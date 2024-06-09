@@ -22,4 +22,5 @@
 
 .vs/
 Debug/
+Release/
 configPaths.ini

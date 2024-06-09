@@ -74,11 +74,11 @@ void Cube::init(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Mater
         Vertex(-size.x, +size.y, +size.z, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f)
     };
 
-    if (meshes.size() != 0)
+    if (model->meshes.size() != 0)
     {
-        meshes[0].newVertices(vertices);
-        meshes[0].newIndices(indices);
+        model->meshes[0].newVertices(vertices);
+        model->meshes[0].newIndices(indices);
     }
     else
-        meshes.emplace_back(vertices, indices, clr, type);
+        model->meshes.emplace_back(vertices, indices, clr, type);
 }

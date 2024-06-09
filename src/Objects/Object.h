@@ -1,17 +1,20 @@
 #pragma once
 #include "Components/Transform/Transform.h"
-#include "Components/Mesh/Mesh.h"
+#include "Components/Model/Model.h"
 
 class Object
 {
 public:
-	Object() {}
+	Object() { model = new Model(); }
+	Object(const std::string& modelPath) { model = new Model(modelPath); }
+	~Object() { delete model; }
 	void draw(Shader& shader, const Renderer& renderer) {
 		shader.setUniformMat4f("model", transform.getModelMatrix());
-		for (Mesh& m : meshes)
-			m.draw(shader, renderer);
+
+		if (model != nullptr)
+			model->draw(shader, renderer);
 	}
 
 	Transform transform;
-	std::vector<Mesh> meshes;
+	Model* model = nullptr;
 };

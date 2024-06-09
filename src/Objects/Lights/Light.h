@@ -1,7 +1,7 @@
 #pragma once
 #include "glm/glm.hpp"
 #include "../../Rendering/Renderer.h"
-#include "../Components/Mesh/Material.h"
+#include "../Components/Model/Material.h"
 #include "../../Rendering/VertexBufferLayout.h"
 
 struct LightVertex {
