@@ -3,6 +3,7 @@
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec2 textureCoord;
+layout(location = 3) in vec3 _tangent;
 
 out vec2 texCoord;
 
@@ -127,5 +128,5 @@ void main()
 		result += calculatePointLight(pointLight[i], norm, fragPos, viewDirection);
 
 	//Result
-    fragColor = vec4(result, 1.0);
+	fragColor = vec4(result, 1.0);
 }

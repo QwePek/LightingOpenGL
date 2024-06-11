@@ -719,6 +719,7 @@
     <None Include="res\libraries\glm\gtx\vector_query.inl" />
     <None Include="res\libraries\glm\gtx\wrap.inl" />
     <None Include="src\Rendering\Shaders\BlinnPhong.shader" />
+    <None Include="src\Rendering\Shaders\BlinnPhongNormalMapping.shader" />
     <None Include="src\Rendering\Shaders\depthShader.shader" />
     <None Include="src\Rendering\Shaders\lightShader.shader" />
     <None Include="src\Rendering\Shaders\Phong.shader" />

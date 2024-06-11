@@ -81,6 +81,9 @@ void processInput(GLFWwindow* window)
         currentShaderType = shaderType::BlinnPhong;
     }
     if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        currentShaderType = shaderType::BlinnPhongNormalMapping;
+    }
+    if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS) {
         currentShaderType = shaderType::PBR;
     }
 
@@ -135,7 +138,8 @@ int main()
     }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(windowSize.x, windowSize.y, "App", NULL, NULL);
     if (window == NULL)
@@ -174,17 +178,20 @@ int main()
     ImGui::StyleColorsDark();
     ImGui::PushStyleVar(ImGuiStyleVar_SeparatorTextAlign, ImVec2(0.5f, 0.5f));
 
-
     //------------------
     Renderer renderer;
     Shader lightShader("src/Rendering/Shaders/lightShader.shader", shaderType::LightSh);
     Shader phong("src/Rendering/Shaders/Phong.shader", shaderType::Phong);
     Shader depthShader("src/Rendering/Shaders/depthShader.shader", shaderType::DepthBuffer);
     Shader blinnPhong("src/Rendering/Shaders/BlinnPhong.shader", shaderType::BlinnPhong);
+    Shader blinnPhongNormal("src/Rendering/Shaders/BlinnPhongNormalMapping.shader", shaderType::BlinnPhongNormalMapping);
 
-    std::shared_ptr<Texture> tx = std::make_shared<Texture>("res\\textures\\MetalContainer.png", TextureType::Diffuse);
-    std::shared_ptr<Texture> tx1= std::make_shared<Texture>("res\\textures\\MetalContainer_specular.png", TextureType::Specular);
-
+    //std::shared_ptr<Texture> tx = std::make_shared<Texture>("res\\textures\\MetalContainer.png", TextureType::Diffuse);
+    //std::shared_ptr<Texture> tx1= std::make_shared<Texture>("res\\textures\\MetalContainer_specular.png", TextureType::Specular);
+    
+    std::shared_ptr<Texture> tx2 = std::make_shared<Texture>("res\\textures\\Wall2\\Diffuse.png", TextureType::Diffuse);
+    std::shared_ptr<Texture> tx3 = std::make_shared<Texture>("res\\textures\\Wall2\\Normal.png", TextureType::Normal);
+    
     phong.bind();
 
     std::unique_ptr<Light> directionalLight = std::make_unique<DirectionalLight>(glm::vec3(0.4f, -1.0f, 0.05f));
@@ -193,20 +200,25 @@ int main()
     int numOfLights = 1;
     for (int i = 0; i < numOfLights; i++) {
         float distance = Utils::Random::generateRandomNumber(1, 100);
-        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(0.0f, 3.0f - 6.0f * i, 0.0f), distance));
+        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(0.0f, 6.0f - 6.0f * i, 0.0f), distance));
     }
 
     int cubeCount = 0;
     std::vector<std::unique_ptr<Object>> worldObjects;
     worldObjects.reserve(cubeCount + 1);
-    /*std::unique_ptr<Object> floor = std::make_unique<Cube>(glm::vec3(0, 0, 0), glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(3 , 0.1f, 3), glm::vec3(1.0, 1.0, 1.0), Material::Wood);
-    floor->model->meshes[0].addTexture("res\\textures\\Floor\\Diffuse.jpg", TextureType::Diffuse);
-    floor->model->meshes[0].addTexture("res\\textures\\Floor\\Specular.jpg", TextureType::Specular);
-    worldObjects.push_back(std::move(floor));*/
+    std::unique_ptr<Object> floor = std::make_unique<Cube>(glm::vec3(0, -10, 0), glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(3 , 3.0f, 3), glm::vec3(1.0, 1.0, 1.0), Material::Wood);
+    //floor->model->meshes[0].addTexture("res\\textures\\Floor\\Diffuse.jpg", TextureType::Diffuse);
+    //floor->model->meshes[0].addTexture("res\\textures\\Floor\\Specular.jpg", TextureType::Specular);
+    //floor->model->meshes[0].addTexture("res\\textures\\Floor\\Normal.jpg", TextureType::Normal);
+    floor->model->meshes[0].addTexture(tx2);
+    floor->model->meshes[0].addTexture(tx3);
+    worldObjects.push_back(std::move(floor));
 
-    std::unique_ptr<Object> backpack = std::make_unique<Object>("res/models/backpack/backpack.obj");
-    worldObjects.push_back(std::move(backpack));
+    //std::unique_ptr<Object> backpack = std::make_unique<Object>("res/models/backpack/backpack.obj");
+    //worldObjects.push_back(std::move(backpack));
+    //std::unique_ptr<Object> wal = std::make_unique<Object>("res/models/BlendWall/Wall.obj");
+    //worldObjects.push_back(std::move(wal));
 
     glm::i32vec3 minValues(50, 50, 50);
     for (int x = 0; x < cubeCount; x++)
@@ -241,13 +253,14 @@ int main()
                 break;
         }
 
-        obj->model->meshes[0].addTexture(tx);
-        obj->model->meshes[0].addTexture(tx1);
+        //obj->model->meshes[0].addTexture(tx);
+        //obj->model->meshes[0].addTexture(tx1);
         worldObjects.push_back(std::move(obj));
     }
 
     phong.unbind();
     blinnPhong.unbind();
+    blinnPhongNormal.unbind();
     lightShader.unbind();
     depthShader.unbind();
 
@@ -265,6 +278,12 @@ int main()
         ImGui::NewFrame();
 
         {
+            //ImGui::Begin("Sraka wall");
+            //glm::vec3 rot = worldObjects[1]->transform.getRotation();
+            //ImGui::DragFloat3("Rotation", &rot[0]);
+            //worldObjects[1]->transform.setRotation(rot);
+            //ImGui::End();
+
             //cam.drawImGui();
             if(dirLight)
                 directionalLight->drawImGUI();
@@ -362,6 +381,46 @@ int main()
                 }
                 break;
 
+            case BlinnPhongNormalMapping:
+                //Light drawing
+                lightShader.bind();
+                for (size_t i = 0; i < pointLights.size(); i++)
+                {
+                    lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                    lightShader.setUniformMat4f("view", cam.getViewMatrix());
+                    lightShader.setUniformMat4f("model", pointLights[i]->getModelMatrix());
+                    lightShader.setUniformVec3f("lightColor", pointLights[i]->getColor());
+                    pointLights[i]->draw(lightShader, renderer);
+                }
+                lightShader.unbind();
+                //Light drawing */
+
+                blinnPhongNormal.bind();
+
+                blinnPhongNormal.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                blinnPhongNormal.setUniformMat4f("view", cam.getViewMatrix());
+                blinnPhongNormal.setUniformVec3f("viewPos", cam.getPosition());
+
+                //Directional light
+                if (dirLight) {
+                    blinnPhongNormal.setUniformVec3f("dirLight.direction", static_cast<DirectionalLight*>(directionalLight.get())->getDirection());
+                    blinnPhongNormal.setUniformVec3f("dirLight.ambient", directionalLight->getAmbient());
+                    blinnPhongNormal.setUniformVec3f("dirLight.diffuse", directionalLight->getDiffuse());
+                    blinnPhongNormal.setUniformVec3f("dirLight.specular", directionalLight->getSpecular());
+                }
+
+                //Point light
+                for (size_t i = 0; i < pointLights.size(); i++) {
+                    blinnPhongNormal.setUniformVec3f("lightPos[" + std::to_string(i) + "]", pointLights[i]->getPosition());
+                    blinnPhongNormal.setUniformVec3f("pointLight[" + std::to_string(i) + "].ambient", pointLights[i]->getAmbient());
+                    blinnPhongNormal.setUniformVec3f("pointLight[" + std::to_string(i) + "].diffuse", pointLights[i]->getDiffuse());
+                    blinnPhongNormal.setUniformVec3f("pointLight[" + std::to_string(i) + "].specular", pointLights[i]->getSpecular());
+                    blinnPhongNormal.setUniform1f("pointLight[" + std::to_string(i) + "].constant", dynamic_cast<PointLight*>(pointLights[i].get())->getConstant());
+                    blinnPhongNormal.setUniform1f("pointLight[" + std::to_string(i) + "].linear", dynamic_cast<PointLight*>(pointLights[i].get())->getLinear());
+                    blinnPhongNormal.setUniform1f("pointLight[" + std::to_string(i) + "].quadratic", dynamic_cast<PointLight*>(pointLights[i].get())->getQuadratic());
+                }
+                break;
+
             case PBR:
 
                 break;
@@ -382,6 +441,17 @@ int main()
             case BlinnPhong:
                 obj->draw(blinnPhong, renderer);
                 break;
+
+            case BlinnPhongNormalMapping:
+                //glUseProgram(0);
+                //glMatrixMode(GL_PROJECTION);
+                //glLoadMatrixf((const GLfloat*)&cam.getProjectionMatrix(windowSize)[0]);
+                //glMatrixMode(GL_MODELVIEW);
+                //glm::mat4 MV = cam.getViewMatrix() * obj->transform.getModelMatrix();
+                //glLoadMatrixf((const GLfloat*)&MV[0]);
+
+                obj->draw(blinnPhongNormal, renderer);
+                break;
             }
         }
 
@@ -390,6 +460,7 @@ int main()
         case Phong: phong.unbind(); break;
         case DepthBuffer: depthShader.unbind(); break;
         case BlinnPhong: blinnPhong.unbind(); break;
+        case BlinnPhongNormalMapping: blinnPhongNormal.unbind(); break;
         case PBR: break;
         }
         //Objects drawing */

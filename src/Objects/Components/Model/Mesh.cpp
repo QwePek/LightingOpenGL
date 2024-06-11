@@ -55,6 +55,7 @@ void Mesh::initMesh()
     layout.Push<float>(3); //pos
     layout.Push<float>(3); //normals
     layout.Push<float>(2); //text coords
+    layout.Push<float>(3); //tangents
 
     va->addBuffer(*vb, layout);
 
@@ -106,10 +107,12 @@ void Mesh::draw(Shader& shader, const Renderer& renderer)
 {
     switch (shader.getType())
     {
+    case BlinnPhongNormalMapping:
     case BlinnPhong:
     case Phong:
-        int matDiffID = 0;
-        int matSpecID = 0;
+        uint32_t matDiffID = 0;
+        uint32_t matSpecID = 0;
+        uint32_t matNormID = 0;
         std::string str;
         shader.setUniform1f("material0.shineness", getShininess());
         
@@ -119,15 +122,38 @@ void Mesh::draw(Shader& shader, const Renderer& renderer)
             switch (textures[i]->getType())
             {
             case Diffuse: 
-                shader.setUniform1f("material" + std::to_string(matDiffID++) + ".diffuse", i); //Assigning texture number of specular map
+                shader.setUniform1f("material" + std::to_string(matDiffID++) + ".diffuse", i);
                 break;
             case Specular: 
-                shader.setUniform1f("material" + std::to_string(matSpecID++) + ".specular", i); //Assigning texture number of specular map
+                shader.setUniform1f("material" + std::to_string(matSpecID++) + ".specular", i);
+                break;
+            case Normal:
+                if (shader.getType() == BlinnPhongNormalMapping)
+                    shader.setUniform1f("material" + std::to_string(matNormID++) + ".normalMap", i);
                 break;
             }
         }
         break;
     }
+    //glColor3f(0, 0, 1);
+    //glBegin(GL_LINES);
+    //for (int i = 0; i < indices.size(); i++) {
+    //glColor3f(0, 0, 1);
+    //    glm::vec3 p = vertices[indices[i]].position;
+    //    glVertex3fv(&p.x);
+
+    //    glm::vec3 o = glm::normalize(vertices[indices[i]].tangents);
+    //    p += o * 0.1f;
+    //    glVertex3fv(&p.x);
+
+    //    glColor3f(1, 0, 0);
+    //    p = vertices[indices[i]].position;
+    //    glVertex3fv(&p.x);
+    //    glm::vec3 t = glm::normalize(vertices[indices[i]].tangents);
+    //    p += t * 0.1f;
+    //    glVertex3fv(&p.x);
+    //}
+    //glEnd();
 
     renderer.draw(*va, *ib, shader);
     for (auto& tx : textures)

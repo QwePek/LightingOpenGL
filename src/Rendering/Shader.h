@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "glm\glm.hpp"
 
-enum shaderType { LightSh, Phong, DepthBuffer, BlinnPhong, PBR };
+enum shaderType { LightSh, Phong, DepthBuffer, BlinnPhong, BlinnPhongNormalMapping, PBR };
 
 struct ShaderProgramSource
 {

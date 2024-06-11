@@ -68,7 +68,7 @@ void Sphere::generateSphereVerticesAndIndices(std::vector<Vertex>& verRef, std::
             double zNormal = z * inverseLength;;
             double s = (double)sectorStep / sectors;
             double t = (double)stackStep / stacks;
-            verRef.emplace_back(x, y, z, xNormal, yNormal, zNormal, s, t);
+            verRef.emplace_back(x, y, z, xNormal, yNormal, zNormal, s, t, 0.0f, 0.0f, 0.0f); //Tangets losowe :(
         }
     }
 
@@ -97,5 +97,45 @@ void Sphere::generateSphereVerticesAndIndices(std::vector<Vertex>& verRef, std::
             i1++;
             i2++;
         }
+    }
+
+    //Obliczanie tangent
+    for (unsigned int i = 0; i < indRef.size(); i += 3) {
+        Vertex& v0 = verRef[indRef[i]];
+        Vertex& v1 = verRef[indRef[i + 1]];
+        Vertex& v2 = verRef[indRef[i + 2]];
+
+        glm::vec3 edge1 = v1.position - v0.position;
+        glm::vec3 edge2 = v2.position - v0.position;
+        glm::vec2 deltaUV1 = v1.txCoord - v0.txCoord;
+        glm::vec2 deltaUV2 = v2.txCoord - v0.txCoord;
+
+        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+        glm::vec3 tangent;
+        tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+        tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+        tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+        tangent = glm::normalize(tangent);
+
+        v0.tangents += tangent;
+        v1.tangents += tangent;
+        v2.tangents += tangent;
+
+        //glm::vec3 bitangent;
+        //bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+        //bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+        //bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+        //bitangent = glm::normalize(bitangent);
+
+        //v0.Bitangent += bitangent;
+        //v1.Bitangent += bitangent;
+        //v2.Bitangent += bitangent;
+    }
+
+    // Normalizacja wynikowych tangentów i bitangentów dla ka¿dego wierzcho³ka
+    for (unsigned int i = 0; i < verRef.size(); ++i) {
+        verRef[i].tangents = glm::normalize(verRef[i].tangents);
+        //vertices[i].Bitangent = glm::normalize(vertices[i].Bitangent);
     }
 }

@@ -6,11 +6,13 @@
 #include "../../../Rendering/Texture.h"
 
 struct Vertex {
-	Vertex(const glm::vec3& p, const glm::vec3& n, const glm::vec2& txC) : position(p), normal(n), txCoord(txC) { }
-	Vertex(float x, float y, float z, float nx, float ny, float nz, float txCoordX, float txCoordY) : position(x, y, z), normal(nx, ny, nz), txCoord(txCoordX, txCoordY) { }
+	Vertex(const glm::vec3& p, const glm::vec3& n, const glm::vec2& txC, const glm::vec3& tan) : position(p), normal(n), txCoord(txC), tangents(tan) { }
+	Vertex(float x, float y, float z, float nx, float ny, float nz, float txCoordX, float txCoordY, float tanX, float tanY, float tanZ) : position(x, y, z), 
+		normal(nx, ny, nz), txCoord(txCoordX, txCoordY), tangents(tanX, tanY, tanZ) { }
 	glm::vec3 position;
 	glm::vec3 normal;
 	glm::vec2 txCoord;
+	glm::vec3 tangents;
 };
 
 class Mesh

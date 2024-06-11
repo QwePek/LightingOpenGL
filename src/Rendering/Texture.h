@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 
-enum TextureType { None, Diffuse, Specular };
+enum TextureType { None, Diffuse, Specular, Normal };
 
 class Texture
 {
