@@ -11,7 +11,7 @@ public:
 	Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr);
 	Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Material::Type type);
 
-	void drawImGUI(uint32_t additionalID) { };
+	void drawImGUI(uint32_t additionalID);
 
 private:
 	void init(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Material::Type type);

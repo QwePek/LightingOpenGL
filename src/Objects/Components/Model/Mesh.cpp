@@ -105,15 +105,13 @@ void Mesh::addTexture(const std::string& path, TextureType type)
 
 void Mesh::draw(Shader& shader, const Renderer& renderer)
 {
+    uint32_t matID[7] = { };
+    std::string str;
     switch (shader.getType())
     {
     case BlinnPhongNormalMapping:
     case BlinnPhong:
     case Phong:
-        uint32_t matDiffID = 0;
-        uint32_t matSpecID = 0;
-        uint32_t matNormID = 0;
-        std::string str;
         shader.setUniform1f("material0.shineness", getShininess());
         
         for (uint32_t i = 0; i < textures.size(); i++)
@@ -121,15 +119,48 @@ void Mesh::draw(Shader& shader, const Renderer& renderer)
             textures[i]->bind(i);
             switch (textures[i]->getType())
             {
-            case Diffuse: 
-                shader.setUniform1f("material" + std::to_string(matDiffID++) + ".diffuse", i);
+            case Diffuse:
+                shader.setUniform1i("material" + std::to_string(matID[0]++) + ".diffuse", i);
                 break;
-            case Specular: 
-                shader.setUniform1f("material" + std::to_string(matSpecID++) + ".specular", i);
+            case Specular:
+                shader.setUniform1i("material" + std::to_string(matID[1]++) + ".specular", i);
                 break;
             case Normal:
                 if (shader.getType() == BlinnPhongNormalMapping)
-                    shader.setUniform1f("material" + std::to_string(matNormID++) + ".normalMap", i);
+                    shader.setUniform1i("material" + std::to_string(matID[2]++) + ".normalMap", i);
+                break;
+            }
+        }
+        break;
+
+    case PBR:
+        for (uint32_t i = 0; i < textures.size(); i++)
+        {
+            textures[i]->bind(i);
+            switch (textures[i]->getType())
+            {
+            case Normal:
+                //+3 BO SA IRRADIANCE I PREFILTERED I BRDF - POTEM TO OGARNIJ
+                shader.setUniform1i("material" + std::to_string(matID[2]++) + ".normalMap", i);
+                break;
+            case Albedo:
+                shader.setUniform1i("material" + std::to_string(matID[3]++) + ".albedoMap", i);
+                break;
+            case AmbientOcclusion:
+                shader.setUniform1i("material" + std::to_string(matID[4]++) + ".aoMap", i);
+                break;
+            case Metallic:
+                shader.setUniform1i("material" + std::to_string(matID[5]++) + ".metallicMap", i );
+                break;
+            case Roughness:
+                shader.setUniform1i("material" + std::to_string(matID[6]++) + ".roughnessMap", i);
+                break;
+            //Support for Phong materials
+            case Diffuse:
+                shader.setUniform1i("material" + std::to_string(matID[3]++) + ".albedoMap", i);
+                break;
+            case Specular:
+                shader.setUniform1i("material" + std::to_string(matID[3]++) + ".metallicMap", i);
                 break;
             }
         }

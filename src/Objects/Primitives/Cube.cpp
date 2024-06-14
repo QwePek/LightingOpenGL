@@ -4,6 +4,7 @@
 #include "glm\gtc\matrix_transform.hpp"
 #include "glm\gtc\type_ptr.hpp"
 #include "../Components/Transform/Transform.h"
+#include <imgui/imgui.h>
 
 Cube::Cube(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr)
 {
@@ -111,3 +112,10 @@ void Cube::init(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Mater
     else
         model->meshes.emplace_back(vertices, indices, clr, type);
 }
+
+void Cube::drawImGUI(uint32_t additionalID)
+{
+    ImGui::Begin("Floor");
+    ImGui::DragFloat3("Position", &transform.position[0]);
+    ImGui::End();
+};

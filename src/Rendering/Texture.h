@@ -1,7 +1,8 @@
 #pragma once
 #include <iostream>
 
-enum TextureType { None, Diffuse, Specular, Normal };
+enum TextureType { None, Diffuse, Specular, Normal, 
+	Albedo, AmbientOcclusion, Metallic, Roughness, HDR};
 
 class Texture
 {
@@ -20,6 +21,8 @@ public:
 	inline TextureType getType() { return type; }
 
 private:
+	bool loadHDRTexture();
+
 	uint32_t texID;
 	TextureType type;
 	std::string path;

@@ -75,8 +75,21 @@ void Model::processMesh(aiMesh* mesh, const aiScene* scene, std::vector<Vertex>&
 		std::vector<std::shared_ptr<Texture>> specularMaps = loadMaterialTextures(mat, aiTextureType_SPECULAR, TextureType::Specular);
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		std::vector<std::shared_ptr<Texture>> normalMaps = loadMaterialTextures(mat, aiTextureType_HEIGHT, TextureType::Normal);
+		std::vector<std::shared_ptr<Texture>> normalMaps = loadMaterialTextures(mat, aiTextureType_NORMAL_CAMERA, TextureType::Normal);
 		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+		//PBR TEXTURES
+		std::vector<std::shared_ptr<Texture>> albedoMaps = loadMaterialTextures(mat, aiTextureType_BASE_COLOR, TextureType::Albedo);
+		textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
+
+		std::vector<std::shared_ptr<Texture>> metallicMaps = loadMaterialTextures(mat, aiTextureType_METALNESS, TextureType::Metallic);
+		textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
+
+		std::vector<std::shared_ptr<Texture>> roughnessMaps = loadMaterialTextures(mat, aiTextureType_DIFFUSE_ROUGHNESS, TextureType::Roughness);
+		textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+
+		std::vector<std::shared_ptr<Texture>> aoMaps = loadMaterialTextures(mat, aiTextureType_AMBIENT_OCCLUSION, TextureType::AmbientOcclusion);
+		textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
 	}
 }
 

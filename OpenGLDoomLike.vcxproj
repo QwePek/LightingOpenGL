@@ -720,9 +720,15 @@
     <None Include="res\libraries\glm\gtx\wrap.inl" />
     <None Include="src\Rendering\Shaders\BlinnPhong.shader" />
     <None Include="src\Rendering\Shaders\BlinnPhongNormalMapping.shader" />
+    <None Include="src\Rendering\Shaders\Cubemap.shader" />
+    <None Include="src\Rendering\Shaders\CubemapIrradiance.shader" />
     <None Include="src\Rendering\Shaders\depthShader.shader" />
     <None Include="src\Rendering\Shaders\lightShader.shader" />
+    <None Include="src\Rendering\Shaders\PBR.shader" />
+    <None Include="src\Rendering\Shaders\PBR\brdf.shader" />
+    <None Include="src\Rendering\Shaders\PBR\Prefilter.shader" />
     <None Include="src\Rendering\Shaders\Phong.shader" />
+    <None Include="src\Rendering\Shaders\Skybox.shader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

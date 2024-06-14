@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "glm\glm.hpp"
 
-enum shaderType { LightSh, Phong, DepthBuffer, BlinnPhong, BlinnPhongNormalMapping, PBR };
+enum shaderType { LightSh, Phong, DepthBuffer, BlinnPhong, BlinnPhongNormalMapping, PBR, Cubemap, Computation };
 
 struct ShaderProgramSource
 {
@@ -24,6 +24,7 @@ public:
     void setUniform4f(const std::string& name, float v0, float v1, float v2, float v3);
     void setUniform1f(const std::string& name, float f0);
     void setUniform1i(const std::string& name, int v0);
+    void setUniformMat3f(const std::string& name, const glm::mat3& matrix);
     void setUniformMat4f(const std::string& name, const glm::mat4& matrix);
     void setUniformVec3f(const std::string& name, const glm::vec3& vector);
 

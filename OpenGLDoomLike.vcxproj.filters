@@ -1734,5 +1734,11 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="src\Rendering\Shaders\BlinnPhongNormalMapping.shader" />
+    <None Include="src\Rendering\Shaders\PBR.shader" />
+    <None Include="src\Rendering\Shaders\Cubemap.shader" />
+    <None Include="src\Rendering\Shaders\Skybox.shader" />
+    <None Include="src\Rendering\Shaders\CubemapIrradiance.shader" />
+    <None Include="src\Rendering\Shaders\PBR\Prefilter.shader" />
+    <None Include="src\Rendering\Shaders\PBR\brdf.shader" />
   </ItemGroup>
 </Project>

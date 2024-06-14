@@ -35,6 +35,108 @@ float lastFrame = 0.0f;
 
 shaderType currentShaderType = shaderType::Phong;
 
+unsigned int cubeVAO = 0;
+unsigned int cubeVBO = 0;
+void renderCube()
+{
+    // initialize (if necessary)
+    if (cubeVAO == 0)
+    {
+        float vertices[] = {
+            // back face
+            -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+             1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+             1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+             1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+            -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+            -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+            // front face
+            -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+             1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+             1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+             1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+            -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+            -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+            // left face
+            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+            -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+            -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+            -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+            -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+            // right face
+             1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+             1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+             1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+             1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+             1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+             1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+             // bottom face
+             -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+              1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+              1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+              1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+             -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+             -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+             // top face
+             -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+              1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+              1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+              1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+             -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+             -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+        };
+        glGenVertexArrays(1, &cubeVAO);
+        glGenBuffers(1, &cubeVBO);
+        // fill buffer
+        glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        // link vertex attributes
+        glBindVertexArray(cubeVAO);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+    // render Cube
+    glBindVertexArray(cubeVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+}
+
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS)
@@ -138,8 +240,8 @@ int main()
     }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
     GLFWwindow* window = glfwCreateWindow(windowSize.x, windowSize.y, "App", NULL, NULL);
     if (window == NULL)
@@ -164,7 +266,9 @@ int main()
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
     glEnable(GL_BLEND);
     //glEnable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -185,10 +289,17 @@ int main()
     Shader depthShader("src/Rendering/Shaders/depthShader.shader", shaderType::DepthBuffer);
     Shader blinnPhong("src/Rendering/Shaders/BlinnPhong.shader", shaderType::BlinnPhong);
     Shader blinnPhongNormal("src/Rendering/Shaders/BlinnPhongNormalMapping.shader", shaderType::BlinnPhongNormalMapping);
+    Shader pbrShader("src/Rendering/Shaders/PBR.shader", shaderType::PBR);
+    Shader cubemapShader("src/Rendering/Shaders/Cubemap.shader", shaderType::Computation);
+    Shader skyboxShader("src/Rendering/Shaders/Skybox.shader", shaderType::Cubemap);
+    Shader irradianceShader("src/Rendering/Shaders/CubemapIrradiance.shader", shaderType::Computation);
+    Shader prefilterShader("src/Rendering/Shaders/PBR/Prefilter.shader", shaderType::Computation);
+    Shader brdfShader("src/Rendering/Shaders/PBR/brdf.shader", shaderType::Computation);
 
     //std::shared_ptr<Texture> tx = std::make_shared<Texture>("res\\textures\\MetalContainer.png", TextureType::Diffuse);
     //std::shared_ptr<Texture> tx1= std::make_shared<Texture>("res\\textures\\MetalContainer_specular.png", TextureType::Specular);
     
+    std::shared_ptr<Texture> hdrTexture = std::make_shared<Texture>("res\\textures\\HDR\\cobblestone_street_night_8k.hdr", TextureType::HDR);
     std::shared_ptr<Texture> tx2 = std::make_shared<Texture>("res\\textures\\Wall2\\Diffuse.png", TextureType::Diffuse);
     std::shared_ptr<Texture> tx3 = std::make_shared<Texture>("res\\textures\\Wall2\\Normal.png", TextureType::Normal);
     
@@ -197,26 +308,62 @@ int main()
     std::unique_ptr<Light> directionalLight = std::make_unique<DirectionalLight>(glm::vec3(0.4f, -1.0f, 0.05f));
     bool dirLight = true;
     std::vector<std::unique_ptr<Light>> pointLights;
-    int numOfLights = 1;
-    for (int i = 0; i < numOfLights; i++) {
-        float distance = Utils::Random::generateRandomNumber(1, 100);
-        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(0.0f, 6.0f - 6.0f * i, 0.0f), distance));
-    }
+    //for (int i = 0; i < numOfLights; i++) {
+      //  float distance = Utils::Random::generateRandomNumber(1, 100);
+        //pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(0.0f, 0.0f - 6.0f * i, 10.0f), distance));
+        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(-10.0f,  10.0f, 10.0f), 100.0f));
+        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3( 10.0f,  10.0f, 10.0f), 100.0f));
+        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(-10.0f, -10.0f, 10.0f), 100.0f));
+        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3( 10.0f, -10.0f, 10.0f), 100.0f));
+    //}
+    int numOfLights = pointLights.size();
 
     int cubeCount = 0;
     std::vector<std::unique_ptr<Object>> worldObjects;
     worldObjects.reserve(cubeCount + 1);
-    std::unique_ptr<Object> floor = std::make_unique<Cube>(glm::vec3(0, -10, 0), glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(3 , 3.0f, 3), glm::vec3(1.0, 1.0, 1.0), Material::Wood);
-    //floor->model->meshes[0].addTexture("res\\textures\\Floor\\Diffuse.jpg", TextureType::Diffuse);
-    //floor->model->meshes[0].addTexture("res\\textures\\Floor\\Specular.jpg", TextureType::Specular);
-    //floor->model->meshes[0].addTexture("res\\textures\\Floor\\Normal.jpg", TextureType::Normal);
-    floor->model->meshes[0].addTexture(tx2);
-    floor->model->meshes[0].addTexture(tx3);
+    std::unique_ptr<Object> floor = std::make_unique<Cube>(glm::vec3(0, 0, 0), glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(5 , 0.3, 5), glm::vec3(1.0, 1.0, 1.0), Material::Wood);
+    floor->model->meshes[0].addTexture("res\\textures\\Floor\\Diffuse.jpg", TextureType::Diffuse);
+    floor->model->meshes[0].addTexture("res\\textures\\Floor\\Specular.jpg", TextureType::Specular);
+    floor->model->meshes[0].addTexture("res\\textures\\Floor\\Normal.jpg", TextureType::Normal);
+    //floor->model->meshes[0].addTexture(tx2);
+    //floor->model->meshes[0].addTexture(tx3);
     worldObjects.push_back(std::move(floor));
+     
+    //std::shared_ptr<Texture> txAL = std::make_shared<Texture>("res\\textures\\RustedIron\\Albedo.png", TextureType::Albedo);
+    //std::shared_ptr<Texture> txNor = std::make_shared<Texture>("res\\textures\\RustedIron\\Normal.png", TextureType::Normal);
+    //std::shared_ptr<Texture> txMet = std::make_shared<Texture>("res\\textures\\RustedIron\\Metallic.png", TextureType::Metallic);
+    //std::shared_ptr<Texture> txRou = std::make_shared<Texture>("res\\textures\\RustedIron\\Roughness.png", TextureType::Roughness);
+    //std::shared_ptr<Texture> txAo = std::make_shared<Texture>("res\\textures\\RustedIron\\AO.png", TextureType::AmbientOcclusion);
+    //std::shared_ptr<Texture> txALb = std::make_shared<Texture>("res\\textures\\RustedIron\\Albedo.png", TextureType::Diffuse);
+    //std::shared_ptr<Texture> txSpec = std::make_shared<Texture>("res\\textures\\RustedIron\\Metallic.png", TextureType::Specular);
 
-    //std::unique_ptr<Object> backpack = std::make_unique<Object>("res/models/backpack/backpack.obj");
-    //worldObjects.push_back(std::move(backpack));
+
+    //int rows = 7, cols = 7;
+    //float spacing = 2.5f;
+    //for (int y = 0; y < rows; y++)
+    //{
+    //    for (int x = 0; x < cols; x++)
+    //    {
+
+    //        std::unique_ptr spherePBR = std::make_unique<Sphere>(glm::vec3((float)(x - (cols / 2)) * spacing
+    //            , (float)(y - (rows / 2)) * spacing, -2.0f), glm::vec3(90, 90, 90), 1.0f, glm::vec2(50, 50),
+    //            glm::vec3(1.0f, 1.0f, 1.0f), static_cast<Material::Type>(Material::Bronze));
+    //        spherePBR->model->meshes[0].addTexture(txAL);
+    //        spherePBR->model->meshes[0].addTexture(txNor);
+    //        spherePBR->model->meshes[0].addTexture(txMet);
+    //        spherePBR->model->meshes[0].addTexture(txRou);
+    //        spherePBR->model->meshes[0].addTexture(txAo);
+    //        spherePBR->model->meshes[0].addTexture(txALb);
+    //        spherePBR->model->meshes[0].addTexture(txSpec);
+
+    //        worldObjects.push_back(std::move(spherePBR));
+    //    }
+    //}
+
+    std::unique_ptr<Object> backpack = std::make_unique<Object>("res/models/backpack/backpack.obj");
+    backpack->transform.position = glm::vec3(0, 2, 0);
+    worldObjects.push_back(std::move(backpack));
     //std::unique_ptr<Object> wal = std::make_unique<Object>("res/models/BlendWall/Wall.obj");
     //worldObjects.push_back(std::move(wal));
 
@@ -258,6 +405,180 @@ int main()
         worldObjects.push_back(std::move(obj));
     }
 
+    //Cubemap
+    skyboxShader.bind();
+    skyboxShader.setUniform1i("enviromentMap", 0);
+    skyboxShader.unbind();
+
+    uint32_t captureFBO, captureRBO;
+    GLCall(glGenFramebuffers(1, &captureFBO));
+    GLCall(glGenRenderbuffers(1, &captureRBO));
+    GLCall(glBindFramebuffer(GL_FRAMEBUFFER, captureFBO));
+    GLCall(glBindRenderbuffer(GL_RENDERBUFFER, captureRBO));
+    GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512));
+    GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO));
+
+    uint32_t envCubemap;
+    glGenTextures(1, &envCubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    for (uint32_t i = 0; i < 6; i++)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    glm::mat4 captureViews[] = {
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))
+    };
+
+    cubemapShader.bind();
+    hdrTexture->bind(0);
+    cubemapShader.setUniform1i("equirectangularMap", 0);
+    cubemapShader.setUniformMat4f("projection", captureProjection);
+    glViewport(0, 0, 512, 512);
+    GLCall(glBindFramebuffer(GL_FRAMEBUFFER, captureFBO));
+    for (uint32_t i = 0; i < 6; i++)
+    {
+        cubemapShader.setUniformMat4f("view", captureViews[i]);
+        GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0));
+
+        GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        renderCube();
+    }
+
+    GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    cubemapShader.unbind();
+
+
+    //Irradiance
+    uint32_t irradianceMap;
+    glGenTextures(1, &irradianceMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+    for (uint32_t i = 0; i < 6; i++)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+
+    irradianceShader.bind();
+    irradianceShader.setUniform1i("enviromentMap", 0);
+    irradianceShader.setUniformMat4f("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+    glViewport(0, 0, 32, 32);
+    GLCall(glBindFramebuffer(GL_FRAMEBUFFER, captureFBO));
+    for (uint32_t i = 0; i < 6; i++)
+    {
+        irradianceShader.setUniformMat4f("view", captureViews[i]);
+        GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0));
+
+        GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        renderCube();
+    }
+
+    GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    irradianceShader.unbind();
+    //Irradiance */
+
+    //Prefilter
+    unsigned int prefilterMap;
+    glGenTextures(1, &prefilterMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+    for (unsigned int i = 0; i < 6; ++i)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear 
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+
+    prefilterShader.bind();
+    prefilterShader.setUniform1i("enviromentMap", 0);
+    prefilterShader.setUniformMat4f("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    unsigned int maxMipLevels = 5;
+    for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+    {
+        // reisze framebuffer according to mip-level size.
+        unsigned int mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+        glViewport(0, 0, mipWidth, mipHeight);
+
+        float roughness = (float)mip / (float)(maxMipLevels - 1);
+        prefilterShader.setUniform1f("roughness", roughness);
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            prefilterShader.setUniformMat4f("view", captureViews[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            renderCube();
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    prefilterShader.unbind();
+
+    //Prefilter */
+    //Brdf
+    //unsigned int brdfLUTTexture;
+    //glGenTextures(1, &brdfLUTTexture);
+
+    //// pre-allocate enough memory for the LUT texture.
+    //glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+    //// be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    //// then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+    //glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    //glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+
+    //glViewport(0, 0, 512, 512);
+    //brdfShader.bind();
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    //renderQuad();
+
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //brdfShader.unbind();
+
+    //Brdf */
+
+    skyboxShader.bind();
+    int scrW, scrH;
+    glfwGetFramebufferSize(window, &scrW, &scrH);
+    glViewport(0, 0, scrW, scrH);
+    skyboxShader.unbind();
+    //Cubemap */
+
     phong.unbind();
     blinnPhong.unbind();
     blinnPhongNormal.unbind();
@@ -285,6 +606,7 @@ int main()
             //ImGui::End();
 
             //cam.drawImGui();
+            static_cast<Cube*>(worldObjects[0].get())->drawImGUI(0);
             if(dirLight)
                 directionalLight->drawImGUI();
             for (size_t i = 0; i < pointLights.size(); i++) {
@@ -293,22 +615,24 @@ int main()
         }
         processInput(window);
 
+        if (currentShaderType != DepthBuffer) {
+            //Light drawing
+            lightShader.bind();
+            for (size_t i = 0; i < pointLights.size(); i++)
+            {
+                lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                lightShader.setUniformMat4f("view", cam.getViewMatrix());
+                lightShader.setUniformMat4f("model", pointLights[i]->getModelMatrix());
+                lightShader.setUniformVec3f("lightColor", pointLights[i]->getColor());
+                pointLights[i]->draw(lightShader, renderer);
+            }
+            lightShader.unbind();
+            //Light drawing */
+        }
+
         switch (currentShaderType)
         {
             case Phong:
-                //Light drawing
-                lightShader.bind();
-                for (size_t i = 0; i < pointLights.size(); i++)
-                {
-                    lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
-                    lightShader.setUniformMat4f("view", cam.getViewMatrix());
-                    lightShader.setUniformMat4f("model", pointLights[i]->getModelMatrix());
-                    lightShader.setUniformVec3f("lightColor", pointLights[i]->getColor());
-                    pointLights[i]->draw(lightShader, renderer);
-                }
-                lightShader.unbind();
-                //Light drawing */
-
                 phong.bind();
 
                 phong.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
@@ -342,19 +666,6 @@ int main()
                 break;
 
             case BlinnPhong:
-                //Light drawing
-                lightShader.bind();
-                for (size_t i = 0; i < pointLights.size(); i++)
-                {
-                    lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
-                    lightShader.setUniformMat4f("view", cam.getViewMatrix());
-                    lightShader.setUniformMat4f("model", pointLights[i]->getModelMatrix());
-                    lightShader.setUniformVec3f("lightColor", pointLights[i]->getColor());
-                    pointLights[i]->draw(lightShader, renderer);
-                }
-                lightShader.unbind();
-                //Light drawing */
-
                 blinnPhong.bind();
 
                 blinnPhong.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
@@ -382,19 +693,6 @@ int main()
                 break;
 
             case BlinnPhongNormalMapping:
-                //Light drawing
-                lightShader.bind();
-                for (size_t i = 0; i < pointLights.size(); i++)
-                {
-                    lightShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
-                    lightShader.setUniformMat4f("view", cam.getViewMatrix());
-                    lightShader.setUniformMat4f("model", pointLights[i]->getModelMatrix());
-                    lightShader.setUniformVec3f("lightColor", pointLights[i]->getColor());
-                    pointLights[i]->draw(lightShader, renderer);
-                }
-                lightShader.unbind();
-                //Light drawing */
-
                 blinnPhongNormal.bind();
 
                 blinnPhongNormal.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
@@ -422,7 +720,35 @@ int main()
                 break;
 
             case PBR:
+                pbrShader.bind();
 
+                pbrShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+                pbrShader.setUniformMat4f("view", cam.getViewMatrix());
+                pbrShader.setUniformVec3f("viewPos", cam.getPosition());
+
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+                //glActiveTexture(GL_TEXTURE1);
+                //glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+                //glActiveTexture(GL_TEXTURE2);
+                //glBindTexture(GL_TEXTURE_CUBE_MAP, brdfLUTTexture);
+                pbrShader.setUniform1i("irradianceMap", 0);
+                //pbrShader.setUniform1i("prefilterMap", 1);
+                //pbrShader.setUniform1i("brdfLUT", 2);
+
+                //Directional light
+                if (dirLight) {
+                    pbrShader.setUniformVec3f("dirLight.direction", static_cast<DirectionalLight*>(directionalLight.get())->getDirection());
+                    pbrShader.setUniformVec3f("dirLight.color", directionalLight->getAmbient());
+                }
+
+                //Point light
+                for (size_t i = 0; i < pointLights.size(); i++) {
+                    pbrShader.setUniformVec3f("pointLight[" + std::to_string(i) + "].position", pointLights[i]->getPosition());
+                    pbrShader.setUniformVec3f("pointLight[" + std::to_string(i) + "].color", pointLights[i]->getAmbient() * 1500.0f);
+                }
+
+                pbrShader.unbind();
                 break;
         }
 
@@ -432,6 +758,7 @@ int main()
             {
             case Phong:
                 obj->draw(phong, renderer);
+                
                 break;
 
             case DepthBuffer:
@@ -452,6 +779,10 @@ int main()
 
                 obj->draw(blinnPhongNormal, renderer);
                 break;
+
+            case PBR:
+                obj->draw(pbrShader, renderer);
+                break;
             }
         }
 
@@ -461,8 +792,26 @@ int main()
         case DepthBuffer: depthShader.unbind(); break;
         case BlinnPhong: blinnPhong.unbind(); break;
         case BlinnPhongNormalMapping: blinnPhongNormal.unbind(); break;
-        case PBR: break;
+        case PBR: pbrShader.unbind(); 
+            //Cubemap rendering
+            glDepthFunc(GL_LEQUAL);
+            skyboxShader.bind();
+            skyboxShader.setUniformMat4f("projection", cam.getProjectionMatrix(windowSize));
+            skyboxShader.setUniformMat4f("view", cam.getViewMatrix());
+            glActiveTexture(GL_TEXTURE0);
+            //glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+            //glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+            renderCube();
+            skyboxShader.unbind();
+            glDepthFunc(GL_LESS); //Powrot do defaultowej wartosci
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+            
+            break;
         }
+
+
+        
         //Objects drawing */
 
         //End Draw

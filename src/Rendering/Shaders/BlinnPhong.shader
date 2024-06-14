@@ -10,6 +10,7 @@ out vec2 texCoord;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform mat3 normalMatrix;
 
 out vec3 fragPos;
 out vec3 ourNormal; // output a normal to the fragment shader
@@ -18,7 +19,7 @@ void main()
 {
 	gl_Position = projection * view * model * vec4(pos, 1.0f);
 	fragPos = vec3(model * vec4(pos, 1.0));
-	ourNormal = normal;
+	ourNormal = normalMatrix * normal;
 	texCoord = textureCoord;
 }
 
@@ -39,7 +40,7 @@ struct DirectionalLight {
 	vec3 specular;
 };
 
-#define NR_OF_POINT_LIGHTS 1
+#define NR_OF_POINT_LIGHTS 4
 struct PointLight {
 	vec3 position;
 

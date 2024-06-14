@@ -9,7 +9,9 @@ public:
 	Object(const std::string& modelPath) { model = new Model(modelPath); }
 	~Object() { delete model; }
 	void draw(Shader& shader, const Renderer& renderer) {
+		shader.bind();
 		shader.setUniformMat4f("model", transform.getModelMatrix());
+		shader.setUniformMat3f("normalMatrix", glm::transpose(glm::inverse(transform.getModelMatrix())));
 
 		if (model != nullptr)
 			model->draw(shader, renderer);
