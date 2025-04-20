@@ -115,7 +115,7 @@ void Cube::init(glm::vec3 pos, glm::vec3 rot, glm::vec3 sz, glm::vec3 clr, Mater
 
 void Cube::drawImGUI(uint32_t additionalID)
 {
-    ImGui::Begin("Floor");
+    ImGui::Begin("Object");
     ImGui::DragFloat3("Position", &transform.position[0]);
     ImGui::End();
 };

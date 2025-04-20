@@ -15,7 +15,6 @@
 #include "Rendering/VertexBufferLayout.h"
 #include "Rendering/Texture.h"
 #include "Camera.h"
-#include "Wall.h"
 #include "Objects/Primitives/Cube.h"
 #include "Objects/Lights/PointLight.h"
 #include "Objects/Lights/DirectionalLight.h"
@@ -231,7 +230,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 int main()
-{   
+{
     srand(time(NULL));
     if (!glfwInit())
     {
@@ -298,74 +297,29 @@ int main()
 
     //std::shared_ptr<Texture> tx = std::make_shared<Texture>("res\\textures\\MetalContainer.png", TextureType::Diffuse);
     //std::shared_ptr<Texture> tx1= std::make_shared<Texture>("res\\textures\\MetalContainer_specular.png", TextureType::Specular);
-    
-    std::shared_ptr<Texture> hdrTexture = std::make_shared<Texture>("res\\textures\\HDR\\cobblestone_street_night_8k.hdr", TextureType::HDR);
+
+    std::shared_ptr<Texture> hdrTexture = std::make_shared<Texture>("res\\textures\\HDR\\pine_attic_8k.hdr", TextureType::HDR);
     std::shared_ptr<Texture> tx2 = std::make_shared<Texture>("res\\textures\\Wall2\\Diffuse.png", TextureType::Diffuse);
     std::shared_ptr<Texture> tx3 = std::make_shared<Texture>("res\\textures\\Wall2\\Normal.png", TextureType::Normal);
-    
+
     phong.bind();
 
     std::unique_ptr<Light> directionalLight = std::make_unique<DirectionalLight>(glm::vec3(0.4f, -1.0f, 0.05f));
     bool dirLight = true;
     std::vector<std::unique_ptr<Light>> pointLights;
-    //for (int i = 0; i < numOfLights; i++) {
-      //  float distance = Utils::Random::generateRandomNumber(1, 100);
-        //pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(0.0f, 0.0f - 6.0f * i, 10.0f), distance));
-        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(-10.0f,  10.0f, 10.0f), 100.0f));
-        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3( 10.0f,  10.0f, 10.0f), 100.0f));
-        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(-10.0f, -10.0f, 10.0f), 100.0f));
-        pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3( 10.0f, -10.0f, 10.0f), 100.0f));
-    //}
+    pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(-10.0f,  10.0f, 10.0f), 100.0f));
+    pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3( 10.0f,  10.0f, 10.0f), 100.0f));
+    pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3(-10.0f, -10.0f, 10.0f), 100.0f));
+    pointLights.emplace_back(std::make_unique<PointLight>(glm::vec3( 10.0f, -10.0f, 10.0f), 100.0f));
     int numOfLights = pointLights.size();
 
     int cubeCount = 0;
     std::vector<std::unique_ptr<Object>> worldObjects;
     worldObjects.reserve(cubeCount + 1);
-    std::unique_ptr<Object> floor = std::make_unique<Cube>(glm::vec3(0, 0, 0), glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(5 , 0.3, 5), glm::vec3(1.0, 1.0, 1.0), Material::Wood);
-    floor->model->meshes[0].addTexture("res\\textures\\Floor\\Diffuse.jpg", TextureType::Diffuse);
-    floor->model->meshes[0].addTexture("res\\textures\\Floor\\Specular.jpg", TextureType::Specular);
-    floor->model->meshes[0].addTexture("res\\textures\\Floor\\Normal.jpg", TextureType::Normal);
-    //floor->model->meshes[0].addTexture(tx2);
-    //floor->model->meshes[0].addTexture(tx3);
-    worldObjects.push_back(std::move(floor));
-     
-    //std::shared_ptr<Texture> txAL = std::make_shared<Texture>("res\\textures\\RustedIron\\Albedo.png", TextureType::Albedo);
-    //std::shared_ptr<Texture> txNor = std::make_shared<Texture>("res\\textures\\RustedIron\\Normal.png", TextureType::Normal);
-    //std::shared_ptr<Texture> txMet = std::make_shared<Texture>("res\\textures\\RustedIron\\Metallic.png", TextureType::Metallic);
-    //std::shared_ptr<Texture> txRou = std::make_shared<Texture>("res\\textures\\RustedIron\\Roughness.png", TextureType::Roughness);
-    //std::shared_ptr<Texture> txAo = std::make_shared<Texture>("res\\textures\\RustedIron\\AO.png", TextureType::AmbientOcclusion);
-    //std::shared_ptr<Texture> txALb = std::make_shared<Texture>("res\\textures\\RustedIron\\Albedo.png", TextureType::Diffuse);
-    //std::shared_ptr<Texture> txSpec = std::make_shared<Texture>("res\\textures\\RustedIron\\Metallic.png", TextureType::Specular);
-
-
-    //int rows = 7, cols = 7;
-    //float spacing = 2.5f;
-    //for (int y = 0; y < rows; y++)
-    //{
-    //    for (int x = 0; x < cols; x++)
-    //    {
-
-    //        std::unique_ptr spherePBR = std::make_unique<Sphere>(glm::vec3((float)(x - (cols / 2)) * spacing
-    //            , (float)(y - (rows / 2)) * spacing, -2.0f), glm::vec3(90, 90, 90), 1.0f, glm::vec2(50, 50),
-    //            glm::vec3(1.0f, 1.0f, 1.0f), static_cast<Material::Type>(Material::Bronze));
-    //        spherePBR->model->meshes[0].addTexture(txAL);
-    //        spherePBR->model->meshes[0].addTexture(txNor);
-    //        spherePBR->model->meshes[0].addTexture(txMet);
-    //        spherePBR->model->meshes[0].addTexture(txRou);
-    //        spherePBR->model->meshes[0].addTexture(txAo);
-    //        spherePBR->model->meshes[0].addTexture(txALb);
-    //        spherePBR->model->meshes[0].addTexture(txSpec);
-
-    //        worldObjects.push_back(std::move(spherePBR));
-    //    }
-    //}
 
     std::unique_ptr<Object> backpack = std::make_unique<Object>("res/models/backpack/backpack.obj");
     backpack->transform.position = glm::vec3(0, 2, 0);
     worldObjects.push_back(std::move(backpack));
-    //std::unique_ptr<Object> wal = std::make_unique<Object>("res/models/BlendWall/Wall.obj");
-    //worldObjects.push_back(std::move(wal));
 
     glm::i32vec3 minValues(50, 50, 50);
     for (int x = 0; x < cubeCount; x++)
@@ -399,9 +353,6 @@ int main()
                     radius, glm::vec2(size, size), glm::vec3(r, g, b), static_cast<Material::Type>(mat));
                 break;
         }
-
-        //obj->model->meshes[0].addTexture(tx);
-        //obj->model->meshes[0].addTexture(tx1);
         worldObjects.push_back(std::move(obj));
     }
 
@@ -542,36 +493,6 @@ int main()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     prefilterShader.unbind();
 
-    //Prefilter */
-    //Brdf
-    //unsigned int brdfLUTTexture;
-    //glGenTextures(1, &brdfLUTTexture);
-
-    //// pre-allocate enough memory for the LUT texture.
-    //glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
-    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
-    //// be sure to set wrapping mode to GL_CLAMP_TO_EDGE
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    //// then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
-    //glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-    //glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-    //glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
-
-    //glViewport(0, 0, 512, 512);
-    //brdfShader.bind();
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    //renderQuad();
-
-    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //brdfShader.unbind();
-
-    //Brdf */
-
     skyboxShader.bind();
     int scrW, scrH;
     glfwGetFramebufferSize(window, &scrW, &scrH);
@@ -599,13 +520,7 @@ int main()
         ImGui::NewFrame();
 
         {
-            //ImGui::Begin("Sraka wall");
-            //glm::vec3 rot = worldObjects[1]->transform.getRotation();
-            //ImGui::DragFloat3("Rotation", &rot[0]);
-            //worldObjects[1]->transform.setRotation(rot);
-            //ImGui::End();
-
-            //cam.drawImGui();
+            cam.drawImGui();
             static_cast<Cube*>(worldObjects[0].get())->drawImGUI(0);
             if(dirLight)
                 directionalLight->drawImGUI();
@@ -770,13 +685,6 @@ int main()
                 break;
 
             case BlinnPhongNormalMapping:
-                //glUseProgram(0);
-                //glMatrixMode(GL_PROJECTION);
-                //glLoadMatrixf((const GLfloat*)&cam.getProjectionMatrix(windowSize)[0]);
-                //glMatrixMode(GL_MODELVIEW);
-                //glm::mat4 MV = cam.getViewMatrix() * obj->transform.getModelMatrix();
-                //glLoadMatrixf((const GLfloat*)&MV[0]);
-
                 obj->draw(blinnPhongNormal, renderer);
                 break;
 
@@ -808,10 +716,7 @@ int main()
             glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
             
             break;
-        }
-
-
-        
+        }     
         //Objects drawing */
 
         //End Draw

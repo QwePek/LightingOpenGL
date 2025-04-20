@@ -20,7 +20,25 @@
 *.out
 *.app
 
+# Directories
+**bin/
+**bin-int/
 .vs/
 Debug/
 Release/
 configPaths.ini
+
+# Files
+*.user
+*imgui.ini
+imgui.ini
+
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+/res/textures/HDR/cobblestone_street_night_8k.hdr
+/res/textures/HDR/meadow_2_8k.hdr
+/res/textures/HDR/HDR.rar
