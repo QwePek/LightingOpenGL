@@ -39,6 +39,3 @@ imgui.ini
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
-/res/textures/HDR/cobblestone_street_night_8k.hdr
-/res/textures/HDR/meadow_2_8k.hdr
-/res/textures/HDR/HDR.rar
